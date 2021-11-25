@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Project-Mapper">
+	
+	
+	<select id="selectPrjctBySn" resultType="project">
+		select PRJCT_SN, PRJCT_SJ, PRJCT_CN, PRJCT_BGNDE, PRJCT_ENDDE, PRJCT_ACTVTY_STTUS_CODE,
+		PRJCT_OTHBC_AT_CODE, PRJCT_CRTR, PRJCT_CREAT_ON,(select count(*) from bookmark_prjct where prjct_sn = #{prjct_sn}) as PRJCT_SCRAP_CO,
+		(select count(*) from likeprjct where prjct_sn = #{prjct_sn}) as PRJCTR_LIKE_CO,
+		PRJCT_PHOTO, GROUP_SN, TEAM_SN, PRJCT_GITID, PRJCT_REPO from project where prjct_sn = #{prjct_sn} 
+	</select>
+	<select id="selectUserCnt" resultType="int">
+	select count(*) as user_cnt 
+	from project_user a, user_roll b 
+	where a.role_sn=b.role_sn 
+	  and a.prjct_sn=#{prjct_sn} 
+	  and b.prjct_author_code != 2
+	</select> 
+	
+	<select id="selectPrjctAuthor" resultType="int">
+	        select a.prjct_author_code from user_roll a, project_user b 
+        where a.prjct_sn=b.prjct_sn 
+          and a.role_sn = b.role_sn 
+           and (select user_sn from project_user where prjct_sn= #{prjct_sn} and mber_sn=#{mber_sn}) = b.user_sn
+	</select>
+	
+	<update id="updateProjectBySn" parameterType="project">
+		update 
+			project 
+		set 
+			prjct_sj = #{prjct_sj},
+			prjct_cn = #{prjct_cn},
+			prjct_endde = #{prjct_endde},
+			prjct_actvty_sttus_code = #{prjct_actvty_sttus_code},
+			prjct_othbc_at_code = #{prjct_othbc_at_code},
+			prjct_photo = #{prjct_photo}
+		where 
+			prjct_sn = #{prjct_sn}
+	</update>
+	
+		
+	<select id="getLike" resultType="int">
+	/* getLike 프로젝트 좋아요 여부 가져오기*/
+		select count(*) from likeprjct where prjct_sn = #{prjct_sn} and mber_sn = #{mber_sn}
+	</select>
+	
+	<insert id="likePrj">
+	/* likePrj 프로젝트 좋아요 등록하기*/
+		insert into likeprjct(prjct_sn, mber_sn) values(#{prjct_sn},#{mber_sn})
+	</insert>
+	<delete id="deletePrj">
+	/* deletePrj 프로젝트 좋아요 취소하기*/
+		delete from likeprjct where prjct_sn=#{prjct_sn} and mber_sn=#{mber_sn}
+	</delete>
+	
+	<select id="getMark" resultType="int">
+	/* getMark 프로젝트 북마크 여부 가져오기*/
+		select count(*) from bookmark_prjct where prjct_sn = #{prjct_sn} and mber_sn = #{mber_sn}
+	</select>
+	<insert id="markPrj">
+	/* markPrj 프로젝트 북마크 등록하기*/
+		insert into bookmark_prjct(prjct_sn, mber_sn) values(#{prjct_sn},#{mber_sn})
+	</insert>
+	<delete id="deleteMarkPrj">
+	/* deleteMarkPrj 프로젝트 북마크 취소하기*/
+		delete from bookmark_prjct where prjct_sn=#{prjct_sn} and mber_sn=#{mber_sn}
+	</delete>
+	
+	<select id="getPro" resultType="project">
+	/* getPro 프로젝트 이슈, 단위업무 진행률*/
+	select round((select count(*)
+		from issue a, project_user b
+		where a.issue_wrter = b.user_sn
+		and b.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn})
+        and a.issue_sttus_code = 0)/
+        decode((select count(*)
+		from issue a, project_user b
+		where a.issue_wrter = b.user_sn
+		and b.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn})),0,1,(select count(*)
+		from issue a, project_user b
+		where a.issue_wrter = b.user_sn
+		and b.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn}))
+        )*100) as issuePro,
+        round((select count(*) 
+        from duty_charge a, project_user b 
+        where a.user_sn = b.user_sn 
+        and b.user_sn in(select user_sn from project_user where prjct_sn=#{prjct_sn})
+        and a.unit_job_pro = 100)/
+        decode((select count(*) 
+        from duty_charge a, project_user b 
+        where a.user_sn = b.user_sn 
+        and b.user_sn in (select user_sn from project_user where prjct_sn=#{prjct_sn})
+        ),0,1,(select count(*) 
+        from duty_charge a, project_user b 
+        where a.user_sn = b.user_sn 
+        and b.user_sn in (select user_sn from project_user where prjct_sn=#{prjct_sn})
+        ))*100) as dutyPro
+        from dual
+	</select>
+	<select id="getMberProject" resultType="project">
+	/* getMberProject 회원이 진행하고 있는 프로젝트*/
+		select rownum, a.prjct_sn, b.prjct_sj, b.prjct_bgnde, b.prjct_endde 
+        from project b, project_user a,  user_roll c
+    where a.prjct_sn = b.prjct_sn 
+    and a.role_sn = c.role_sn
+    and a.mber_sn = #{mber_sn }
+    and c.prjct_author_code != '2'
+        order by b.prjct_endde desc
+	</select>
+
+	<select id="getMberProject2" resultType="project">
+	/* getMberProject 회원이 진행하고 있는 프로젝트 5개만*/
+	select a.prjct_sn, b.prjct_sj, b.prjct_bgnde, b.prjct_endde from project_user a, project b, user_roll c
+    where a.prjct_sn = b.prjct_sn and 
+    a.mber_sn = #{mber_sn} and a.role_sn = c.role_sn and c.prjct_author_code != '2'
+    <![CDATA[
+    and ROWNUM <= 10
+    ]]>
+    order by b.prjct_endde desc
+	</select>
+	
+	<select id="getMarkProject" resultType="project">
+	/* getMarkProject 회원이 북마크한 프로젝트*/
+		select a.prjct_sn, b.prjct_photo, b.prjct_sj 
+		from bookmark_prjct a, project b 
+		where a.prjct_sn = b.prjct_sn
+		and mber_sn = #{mber_sn}
+	</select>
+	<insert id="registPrjct" parameterType="project">
+	/* registPrjct 프로젝트 등록하기*/
+		insert into project
+		(prjct_sn, 
+		prjct_sj, 
+		prjct_cn, 
+		prjct_bgnde, 
+		prjct_endde, 
+		prjct_crtr,
+		prjct_photo,
+		prjct_job_type_code,
+		prjct_repo)
+		values(prjct_seq.nextval,
+		#{prjct_sj},
+		#{prjct_cn}, 
+		#{prjct_bgnde}, 
+		#{prjct_endde}, 
+		#{prjct_crtr},
+		#{prjct_photo},
+		#{prjct_job_type_code},
+		#{prjct_repo})
+	</insert>
+
+	<select id="mberPrjctCnt" resultType="int">
+	select count(*)
+       from project_user a, project b 
+    where a.prjct_sn = b.prjct_sn and 
+    a.mber_sn = #{mber_sn} 
+	
+	</select>
+	<insert id="insertPrjctFile" parameterType="project">
+	/* insertPrjctFile 프로젝트 등록시 상위폴더 생성하기*/
+		insert into file_save(filesave_sn, upper_file_sn, filesave_crtr, filesave_nm, prjct_sn)
+values(seq_file_save.nextval, 0, #{mber_sn}, (select prjct_sj from project where prjct_sn=(select max(nvl(prjct_sn,0)) from project)), (select max(nvl(prjct_sn,0)) from project))
+	</insert>
+	<select id="getPrjctSjForSearch" resultType="str">
+		/* getPrjctSjForSearch 검색을 위한 프로젝트 목록*/
+		select prjct_sj
+  		from project where PRJCT_OTHBC_AT_CODE ='1'
+	</select>
+	
+</mapper>

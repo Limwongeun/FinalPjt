@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="SearchPrjct-Mapper">
+	
+	<sql id="search">
+		<if test="searchType == 't'.toString()">
+		and (prjct_sj like '%'||#{keyword}||'%'	
+		or prjct_cn like '%'||#{keyword}||'%') 			
+		</if>
+		<if  test="searchType == 'tc'.toString()">
+		and (prjct_sj like '%'||#{keyword}||'%'	
+		or prjct_cn like '%'||#{keyword}||'%') 	
+		and prjct_job_type_code = #{type_code}
+		</if>
+	</sql>
+	<select id="selectSearchProjectList"	resultType="project">
+		select PRJCT_SN, PRJCT_SJ, PRJCT_CN, PRJCT_BGNDE, PRJCT_ENDDE, PRJCT_ACTVTY_STTUS_CODE, PRJCT_OTHBC_AT_CODE, PRJCT_CRTR, PRJCT_CREAT_ON, 
+		(select count(*) from likeprjct where prjct_sn = project.prjct_sn) as PRJCTR_LIKE_CO, 
+		(select count(*) from bookmark_prjct where prjct_sn = project.prjct_sn) as PRJCT_SCRAP_CO, 
+		PRJCT_PHOTO, GROUP_SN, TEAM_SN, PRJCT_GITID, PRJCT_REPO
+		from project
+		where prjct_sn is not null	and PRJCT_OTHBC_AT_CODE ='1'		  	
+		<include refid="search" />
+		order by PRJCT_SN desc
+	</select>
+	
+	<select id="selectSearchProjectListCount" resultType="int">
+		select count(*)
+		from project
+		where prjct_sn is not null	and PRJCT_OTHBC_AT_CODE ='1'		  	
+		<include refid="search" />
+		order by PRJCT_SN desc
+	</select>
+</mapper>

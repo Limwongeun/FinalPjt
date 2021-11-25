@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RecruitApply-Mapper">
+	
+	<select id="selectSearchRecruitList" resultType="recruit">
+	    select pblanc_sport_sn, pblanc_sn, pblanc_sport_man_sn, pblanc_sport_cn
+	    from recruit_apply
+	    where pblanc_sport_sttus_code =0
+	    and pblanc_sport_man_sn =#{mber_sn}
+	</select>
+	
+	<select id="selectApplyByMberPrjct" resultType="int">
+	/* selectApplyByMberPrjct 참여 신청을 위한 참여 신청 여부 조회*/
+		select count(pblanc_sport_sn) from recruit_apply 
+		where pblanc_sn = #{pblanc_sn}
+		and pblanc_sport_man_sn = #{pblanc_sport_man_sn}
+	</select>
+	<insert id="insertRecruitApply" parameterType="recruitApply">
+	/* insertRecruitApply 공고 참여 신청 */
+		insert into recruit_apply
+		(pblanc_sport_sn, 
+		pblanc_sn, 
+		pblanc_sport_man_sn, 
+		pblanc_sport_cn, 
+		pblanc_sport_role,
+		pblanc_sport_de, 
+		pblanc_sport_sttus_code)
+		values
+		(recruitapplyseq.nextval, 
+		#{pblanc_sn},
+		#{pblanc_sport_man_sn}, 
+		#{pblanc_sport_cn}, 
+		#{pblanc_sport_role}, 
+		to_char(SYSDATE, 'YYYY-MM-DD'),
+		'0')
+	</insert>
+	
+	<select id="selectApplyRecruitList" resultType="recruitApply" parameterType="str">
+	/* selectApplyRecruitList 내가 신청한 공고 목록 조회 */
+	    select
+        a.pblanc_sport_sn, 
+        a.pblanc_sn,  
+        a.pblanc_sport_role, 
+        b.pblanc_clos_de,
+        a.pblanc_sport_sttus_code,
+        b.pblanc_sj,
+        c.prjct_sj
+	    from recruit_apply a, recruit b, project c
+	    where a.pblanc_sn = b.pblanc_sn
+	    and b.prjct_sn = c.prjct_sn and pblanc_sport_man_sn = #{pblanc_sport_man_sn}
+	    and (a.pblanc_sport_sttus_code = '0' or a.pblanc_sport_sttus_code ='1')
+	    order by b.pblanc_clos_de desc
+	</select>
+	<select id="selectApplyRecruitCnt" resultType="int" parameterType="str">
+	/* selectApplyRecruitCnt 내가 신청한 공고 목록 갯수 조회 */
+		select count(*)
+	    from recruit_apply 
+	    where pblanc_sport_man_sn = #{pblanc_sport_man_sn}
+	    and (pblanc_sport_sttus_code = '0' or pblanc_sport_sttus_code ='1')
+	</select>
+	
+	<select id="myRecruitApplyListByPblancSn" resultType="recruitApply" parameterType="int">
+	/* myRecruitApplyListByPblancSn 내가 작성한 공고 신청자 중 면접 이전 목록 조회*/
+		select pblanc_sport_sn, pblanc_sport_role, 
+			   (select mber_ncnm from member where mber_sn = pblanc_sport_man_sn) as mber_ncnm,
+		pblanc_sport_de	   
+		from recruit_apply
+		where pblanc_sn=#{pblanc_sn}
+		and pblanc_sport_sttus_code = '0'
+			order by pblanc_sport_de desc
+	</select>
+	<select id="myRecruitApplyListByPblancSnCnt" resultType="int" parameterType="int">
+	/* myRecruitApplyListByPblancSnCnt 내가 작성한 공고 신청자 중 면접 이전 목록 갯수 조회*/
+		select count(*)
+		from recruit_apply
+		where pblanc_sn=#{pblanc_sn}
+		and pblanc_sport_sttus_code = '0'
+	</select>
+	<select id="recruitMeetingListByPblancSn" resultType="recruitApply">
+	/*recruitMeetingListByPblancSn 내가 작성한 공고의 면접 목록 조회*/
+	    select a.pblanc_sport_sn, a.pblanc_sport_role, (select mber_ncnm from member where mber_sn = a.pblanc_sport_man_sn) as mber_ncnm,
+	    a.pblanc_sport_sttus_code, a.pblanc_meeting_time, (select prjct_sj from project where prjct_sn = b.prjct_sn) as prjct_sj, b.pblanc_sj
+	    from recruit_apply a, recruit b
+	    where a.pblanc_sn = b.pblanc_sn
+	    and b.pblanc_wrter = #{mber_sn}
+	    and (a.pblanc_sport_sttus_code = '2'or a.pblanc_sport_sttus_code ='3')
+	    	order by a.pblanc_meeting_time desc
+	</select>
+	<select id="recruitMeetingListByPblancSnCnt" resultType="int">
+	/*recruitMeetingListByPblancSnCnt 내가 작성한 공고의 면접 목록 갯수 조회*/
+	    select count(*)
+	    from recruit_apply a, recruit b
+	    where a.pblanc_sn = b.pblanc_sn
+	    and b.pblanc_wrter = #{mber_sn}
+	    and (a.pblanc_sport_sttus_code = '2'or a.pblanc_sport_sttus_code ='3')
+	</select>
+	<select id="meetingResultList" resultType="recruitApply">
+	/*meetingResultList 내가 작성한 공고의 면접 결과 목록 조회*/
+    	select a.pblanc_sport_sn, a.pblanc_sport_role, (select mber_ncnm from member where mber_sn = a.pblanc_sport_man_sn) as mber_ncnm,
+		a.pblanc_sport_sttus_code, a.pblanc_meeting_time, (select prjct_sj from project where prjct_sn = b.prjct_sn) as prjct_sj, b.pblanc_sj
+		from recruit_apply a, recruit b
+		where a.pblanc_sn = b.pblanc_sn
+        and b.pblanc_wrter = #{mber_sn}
+		and (pblanc_sport_sttus_code = '4'or pblanc_sport_sttus_code ='5')
+     	order by a.pblanc_meeting_time desc
+	</select>
+	<select id="meetingResultListCnt" resultType="int">
+	/*meetingResultListCnt 내가 작성한 공고의 면접 결과 목록 갯수 조회*/
+    	select count(*)
+    	from recruit_apply a, recruit b
+		where a.pblanc_sn = b.pblanc_sn
+        and b.pblanc_wrter = #{mber_sn}
+		and (pblanc_sport_sttus_code = '4'or pblanc_sport_sttus_code ='5')
+	</select>
+	<select id="selectApplyByPblancSportSn" resultType="recruitApply" parameterType="int">
+	/*selectApplyByPblancSportSn 공고 신청 내역 상세보기*/
+	select pblanc_sport_sn, pblanc_sn, pblanc_sport_man_sn, pblanc_sport_cn, 
+		   pblanc_sport_role, pblanc_apply_meeting_time, pblanc_sport_sttus_code, pblanc_sport_de
+	from recruit_apply where pblanc_sport_sn = #{pblanc_sport_sn}
+	</select>
+	<update id="updateApplyRefuse" parameterType="int">
+	/*updateApplyRefuse 서류 거절 업데이트*/
+	    update recruit_apply
+    	set pblanc_sport_sttus_code='1'
+    	where pblanc_sport_sn = #{pblanc_sport_sn}
+	</update>
+	<update id="updateMeetingTime" parameterType="recruitApply">
+	/*updateMeetingTime 서류 합격 면접 시간 업데이트*/
+	    update recruit_apply
+	    set pblanc_meeting_time = #{pblanc_meeting_time},
+	    pblanc_sport_sttus_code = '2'
+	    where pblanc_sport_sn = #{pblanc_sport_sn}
+	</update>
+	<update id="updateMeetingEnd">
+	/*updateMeetingEnd 면접 완료 상태 업데이트*/
+	    update recruit_apply
+        set pblanc_sport_sttus_code = '3'
+        where pblanc_sport_sn = #{pblanc_sport_sn}
+	</update>
+	<update id="updateRefuseRecruit">
+		/*updateRefuseRecruit 면접 불합격 상태 업데이트*/
+		update recruit_apply
+        set pblanc_sport_sttus_code = '5'
+        where pblanc_sport_sn = #{pblanc_sport_sn}
+	</update>
+		<update id="updateAcceptRecruit">
+		/*updateRefuseRecruit 면접 합격 상태 업데이트*/
+		update recruit_apply
+        set pblanc_sport_sttus_code = '4'
+        where pblanc_sport_sn = #{pblanc_sport_sn}
+	</update>
+	<select id="applyMeetingListByMberSn" resultType="recruitApply">
+	/*applyMeetingListByMberSn 내가 신청한 면접 목록 조회*/
+	    select a.pblanc_sport_sn, a.pblanc_sport_role, (select mber_ncnm from member where mber_sn = a.pblanc_sport_man_sn) as mber_ncnm,
+	    a.pblanc_sport_sttus_code, a.pblanc_meeting_time, (select prjct_sj from project where prjct_sn = b.prjct_sn) as prjct_sj, b.pblanc_sj
+	    from recruit_apply a, recruit b
+	    where a.pblanc_sn = b.pblanc_sn
+	    and a.pblanc_sport_man_sn = #{mber_sn}
+	    and (a.pblanc_sport_sttus_code = '2'or a.pblanc_sport_sttus_code ='3')
+	      order by a.pblanc_meeting_time desc
+	</select>
+	<select id="applyMeetingListByMberSnCnt" resultType="int">
+	/*applyMeetingListByMberSnCnt 내가 신청한 면접 목록 갯수 조회*/
+	    select count(*)
+	    from recruit_apply a, recruit b
+	    where a.pblanc_sn = b.pblanc_sn
+	    and a.pblanc_sport_man_sn = #{mber_sn}
+	    and (a.pblanc_sport_sttus_code = '2'or a.pblanc_sport_sttus_code ='3')
+	</select>
+	<select id="myMeetingResultList" resultType="recruitApply">
+	/*myMeetingResultList 내가 신청한 공고의 면접 결과 목록 조회*/
+	select a.pblanc_sport_sn, 
+       a.pblanc_sport_role, 
+       c.mber_ncnm,
+       a.pblanc_sport_sttus_code, 
+       a.pblanc_meeting_time, 
+       d.prjct_sj, 
+       b.pblanc_sj,
+      a.pblanc_sport_de,
+      b.pblanc_sn
+	from recruit_apply a, recruit b, member c, project d
+	where a.pblanc_sn = b.pblanc_sn
+	  and c.mber_sn = a.pblanc_sport_man_sn
+	  and d.prjct_sn = b.prjct_sn
+	  and a.pblanc_sport_man_sn = #{mber_sn}
+	  and (a.pblanc_sport_sttus_code = '4'or a.pblanc_sport_sttus_code ='5')
+	    order by a.pblanc_sport_de desc 
+	</select>
+	<select id="myMeetingResultListCnt" resultType="int">
+	/*myMeetingResultListCnt 내가 신청한 공고의 면접 결과 목록 갯수 조회*/
+    	select count(*)
+    	from recruit_apply a, recruit b
+		where a.pblanc_sn = b.pblanc_sn
+	    and a.pblanc_sport_man_sn = #{mber_sn}
+		and (pblanc_sport_sttus_code = '4'or pblanc_sport_sttus_code ='5')
+	</select>
+	
+</mapper>
+
+

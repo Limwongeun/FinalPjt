@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BestOfDock-Mapper">
+	<select id="selectBestMember" resultType="bestMember">
+		select a.BEST_MBER_NO,
+			a.MBER_SN,
+			a.BEST_MBER_DATE,
+			a.BEST_MBER_PJTCNT, 
+			b.mber_nm
+		from
+			 best_member a, member b
+		where
+			 a.mber_sn = b.mber_sn
+	    order by a.best_mber_no desc
+	</select>
+	
+	<select id="selectBestKnowhow" resultType="bestKnowhow">
+		select
+			a.best_knh_no, 
+			a.knh_no,
+			a.best_knh_likecnt,
+			a.best_knh_date,
+			b.knh_title
+		from best_knowhow a,knowhow b
+		where a.knh_no = b.knh_no
+		order by a.best_knh_no desc
+	</select>
+	
+	<select id="selectBestProject" resultType="bestProject">
+		select
+		a.best_pjt_no ,
+		a.prjct_sn ,
+		a.best_pjt_date,
+		a.best_pjt_cnt,
+		b.prjct_sj 
+		from 
+		best_project a , project b 
+		where
+		 a.prjct_sn = b.prjct_sn
+        order by a.best_pjt_date desc
+	</select>
+</mapper>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProjectExclusion-Mapper">
+	
+	
+	<select id="selectPrjctExclReqst" resultType="projectExclusion">
+		/* selectPrjctExclReqst */
+		select b.user_sn, d.excl_reqst_sn, a.mber_sn,a.mber_ncnm, a.mber_nm, c.role_sn, c.role_nm, c.prjct_author_code,d.excl_applcnt, d.apply_date, d.excl_rqestde, d.excl_prvonsh, d.excl_sttus_code
+		from member a, project_user b, user_roll c, exclusion d
+		where a.mber_sn = b.mber_sn
+		and b.role_sn = c.role_sn
+		and b.user_sn = d.excl_applcnt
+		and d.excl_sttus_code=0
+		and b.prjct_sn=#{prjct_sn}
+		order by apply_date desc
+	</select>
+
+	<select id="selectPrjctExclProcess" resultType="projectExclusion">
+		/* selectPrjctExclProcess */
+	   <![CDATA[
+	   select a.mber_sn,
+       a.mber_ncnm, 
+       a.mber_nm, 
+       c.role_nm, 
+       c.prjct_author_code,
+       d.excl_applcnt, 
+       d.apply_date, 
+       d.excl_rqestde, 
+       d.excl_prvonsh,
+       d.excl_sttus_code,d.excl_reqst_return_prvonsh,d.excl_reqst_return_process_de, d.excl_reqst_sn,
+       (select 
+		case WHEN HNDVR_PERIOD <= SYSDATE THEN '종료'
+							WHEN EXCL_STTUS_CODE = 0 THEN '대기'
+							WHEN EXCL_STTUS_CODE = 2 THEN '종료'
+							WHEN ( EXCL_REQST_RETURN_PRVONSH IS NOT NULL OR EXCL_STTUS_CODE = 3) THEN '반려'
+							WHEN HNDVR_PERIOD > SYSDATE THEN '진행'
+							WHEN EXCL_STTUS_CODE = 1 THEN '진행'
+		else '상태이상'
+		end as excl_sttus from exclusion where excl_applcnt = b.user_sn and excl_reqst_sn = d.excl_reqst_sn) as sttus
+		from member a, project_user b, user_roll c, exclusion d
+		where a.mber_sn = b.mber_sn
+		and b.role_sn = c.role_sn
+		and b.user_sn = d.excl_applcnt
+		and (d.excl_sttus_code in(1,2,3))
+		and b.prjct_sn= #{prjct_sn}
+		order by apply_date desc
+		]]>
+	</select>
+	
+	<select id="selectProjectExclAcceptList" resultType="projectExclusion">
+		/* selectProjectExclAcceptList */
+		select a.mber_ncnm, a.mber_nm, c.role_nm, c.prjct_author_code, b.prjct_sn, b.user_sn
+		from member a, project_user b, user_roll c
+		where a.mber_sn = b.mber_sn
+		and b.role_sn = c.role_sn
+		and b.prjct_sn=#{prjct_sn}
+		and c.prjct_author_code != 2
+		and b.user_sn != #{user_sn}
+	</select>
+	
+	<update id="updateProjectExclAccep" parameterType="projectExclusion">
+		/* updateProjectExclAccep */
+		UPDATE exclusion
+		SET
+		    excl_sttus_code = 1,
+		    acptr = #{acptr},
+		    excl_reqst_return_process_de = to_char(SYSDATE, 'YYYY/MM/DD'),
+		    hndvr_period = #{hndvr_period}
+		WHERE
+		    excl_applcnt = #{excl_applcnt}
+	</update>
+	
+	<update id="updateProjectExclAcptr" parameterType="projectExclusion">
+		/* updateProjectExclAcptr */
+		UPDATE PROJECT_USER
+		SET ROLE_SN = (SELECT ROLE_SN FROM PROJECT_USER WHERE USER_SN = #{user_sn})
+		WHERE USER_SN = #{acptr}
+	</update>
+	
+	<update id="updateProjectExclApplcnt" parameterType="projectExclusion">
+		/* updateProjectExclApplcnt */
+		UPDATE PROJECT_USER
+		SET ROLE_SN = 171
+		WHERE USER_SN = #{user_sn}
+	</update>
+	
+	<update id="updateProjectRefuseReason" parameterType="projectExclusion">
+		/* updateProjectRefuseReason */
+		UPDATE EXCLUSION
+		SET EXCL_REQST_RETURN_PRVONSH = #{excl_reqst_return_prvonsh},
+		    EXCL_REQST_RETURN_PROCESS_DE = (select to_char(sysdate, 'yyyy/mm/dd') from dual),
+		    EXCL_STTUS_CODE = 3
+		WHERE EXCL_REQST_SN = #{excl_reqst_sn}
+	</update>
+	
+	<select id="selectProjectExclAcceptDetail" resultType="projectExclusion">
+		/* selectProjectExclAcceptDetail */
+		<![CDATA[ 
+			SELECT
+				EXCL_REQST_SN,
+				EXCL_APPLCNT,
+				ACPTR,
+				EXCL_STTUS_CODE, 
+			    EXCL_RQESTDE,
+				EXCL_REQST_RETURN_PROCESS_DE ,
+				APPLY_DATE ||' ~ '||	HNDVR_PERIOD  AS rqDate,
+				(
+					SELECT MBER_NCNM FROM PROJECT_USER PU , MEMBER MEM
+					WHERE PU.USER_SN = EXCL_APPLCNT
+					AND MEM.MBER_SN = PU.MBER_SN 
+				
+				) AS mber_ncnm1,
+				(
+					SELECT MBER_NCNM FROM PROJECT_USER PU , MEMBER MEM
+					WHERE PU.USER_SN = ACPTR
+					AND MEM.MBER_SN = PU.MBER_SN 
+				
+				) AS mber_ncnm2,
+				(
+				SELECT 
+			CASE WHEN HNDVR_PERIOD <= SYSDATE THEN '종료'
+							WHEN EXCL_STTUS_CODE = 0 THEN '대기'
+							WHEN EXCL_STTUS_CODE = 2 THEN '종료'
+							WHEN ( EXCL_REQST_RETURN_PRVONSH IS NOT NULL OR EXCL_STTUS_CODE = 3) THEN '반려'
+							WHEN HNDVR_PERIOD > SYSDATE THEN '진행'
+							WHEN EXCL_STTUS_CODE = 1 THEN '진행'
+			ELSE '상태이상'
+			END AS EXCL_STTUS FROM EXCLUSION A, PROJECT_USER PU WHERE EXCL.EXCL_APPLCNT = A.EXCL_APPLCNT
+			AND A.EXCL_APPLCNT = PU.USER_SN AND EXCL.EXCL_REQST_SN = A.EXCL_REQST_SN) AS STTUS,
+			EXCL_PRVONSH
+					
+			FROM
+				EXCLUSION EXCL
+			WHERE
+				EXCL_REQST_SN = #{excl_reqst_sn}
+		]]>
+	</select>
+	
+	<select id="selectPrjctExclProcessUser" resultType="projectExclusion">
+		/* selectPrjctExclProcessUser */
+		<![CDATA[ 
+		 select a.mber_sn,
+	       a.mber_ncnm, 
+	       a.mber_nm, 
+	       c.role_nm, 
+	       c.prjct_author_code,
+	       d.excl_applcnt, 
+	       d.apply_date, 
+	       d.excl_rqestde, 
+	       d.excl_prvonsh,
+	       d.excl_sttus_code,d.excl_reqst_return_prvonsh,d.excl_reqst_return_process_de, d.excl_reqst_sn,
+	       (select 
+			case WHEN HNDVR_PERIOD <= SYSDATE THEN '종료'
+				WHEN EXCL_STTUS_CODE = 0 THEN '대기'
+				WHEN EXCL_STTUS_CODE = 2 THEN '종료'
+				WHEN ( EXCL_REQST_RETURN_PRVONSH IS NOT NULL OR EXCL_STTUS_CODE = 3) THEN '반려'
+				WHEN HNDVR_PERIOD > SYSDATE THEN '진행'
+				WHEN EXCL_STTUS_CODE = 1 THEN '진행'
+			else '상태이상'
+			end as excl_sttus from exclusion where excl_applcnt = b.user_sn and excl_reqst_sn = d.excl_reqst_sn) as sttus
+			from member a, project_user b, user_roll c, exclusion d
+			where a.mber_sn = b.mber_sn
+			and b.role_sn = c.role_sn
+			and b.user_sn = d.excl_applcnt
+			and d.excl_sttus_code in(0,1,2,3)
+			and b.prjct_sn= #{prjct_sn}
+			AND a.mber_sn = #{mber_sn}
+		]]>
+	</select>
+	
+	<select id="selectProjectExclAcceptUserDetail" resultType="projectExclusion">
+		/* selectProjectExclAcceptUserDetail */
+		
+		<![CDATA[ 
+			SELECT
+				EXCL_REQST_SN,
+				EXCL_APPLCNT,
+				ACPTR,
+				EXCL_STTUS_CODE, 
+			    EXCL_RQESTDE,
+				EXCL_REQST_RETURN_PROCESS_DE ,
+				EXCL_RQESTDE ||' ~ '||	EXCL_REQST_RETURN_PROCESS_DE  AS rqDate,
+				(
+					SELECT MBER_NCNM FROM PROJECT_USER PU , MEMBER MEM
+					WHERE PU.USER_SN = EXCL_APPLCNT
+					AND MEM.MBER_SN = PU.MBER_SN 
+				
+				) AS mber_ncnm1,
+				(
+					SELECT MBER_NCNM FROM PROJECT_USER PU , MEMBER MEM
+					WHERE PU.USER_SN = ACPTR
+					AND MEM.MBER_SN = PU.MBER_SN 
+				
+				) AS mber_ncnm2,
+				(
+				SELECT 
+					CASE	WHEN HNDVR_PERIOD <= SYSDATE THEN '종료'
+							WHEN EXCL_STTUS_CODE = 0 THEN '대기'
+							WHEN EXCL_STTUS_CODE = 2 THEN '종료'
+							WHEN ( EXCL_REQST_RETURN_PRVONSH IS NOT NULL OR EXCL_STTUS_CODE = 3) THEN '반려'
+							WHEN HNDVR_PERIOD > SYSDATE THEN '진행'
+							WHEN EXCL_STTUS_CODE = 1 THEN '진행'
+						ELSE '상태이상'
+					END AS EXCL_STTUS
+				FROM	EXCLUSION A,
+						PROJECT_USER PU
+				WHERE	EXCL.EXCL_APPLCNT = A.EXCL_APPLCNT
+				AND		A.EXCL_APPLCNT = PU.USER_SN
+				AND		EXCL.EXCL_REQST_SN = A.EXCL_REQST_SN) AS STTUS,
+				EXCL_PRVONSH,
+				EXCL_REQST_RETURN_PRVONSH,
+				APPLY_DATE
+			FROM
+				EXCLUSION EXCL
+			WHERE
+				EXCL_REQST_SN = #{excl_reqst_sn}
+		]]>
+	</select>
+	<select id="selectExclUserDetail" resultType="projectExclusion">
+		/* selectExclUserDetail */
+		
+		SELECT B.USER_SN, D.EXCL_REQST_SN, A.MBER_SN,A.MBER_NCNM, A.MBER_NM, C.ROLE_SN, C.ROLE_NM, C.PRJCT_AUTHOR_CODE,D.EXCL_APPLCNT, D.APPLY_DATE, D.EXCL_RQESTDE, D.EXCL_PRVONSH, D.EXCL_STTUS_CODE
+		FROM MEMBER A, PROJECT_USER B, USER_ROLL C, EXCLUSION D
+		WHERE A.MBER_SN = B.MBER_SN
+		AND B.ROLE_SN = C.ROLE_SN
+		AND B.USER_SN = D.EXCL_APPLCNT
+		AND D.EXCL_STTUS_CODE=0
+		AND B.USER_SN = #{user_sn}
+		ORDER BY APPLY_DATE DESC
+	</select>
+	
+	<insert id="insertProjectExclReason" parameterType="projectExclusion">
+		/* insertProjectExclReason */
+		INSERT INTO exclusion (excl_reqst_sn, excl_prvonsh, EXCL_APPLCNT, EXCL_STTUS_CODE) 
+		VALUES (excl_seq.nextval,  #{excl_prvonsh}, (select user_sn from project_user where prjct_sn = #{prjct_sn} and mber_sn =#{mber_sn}), '0')
+	</insert>
+	<update id="updatePrjctUserEnddate">
+	/* updatePrjctUserEnddate */
+		update project_user
+        set end_date = #{hndvr_period}
+        where user_sn = #{user_sn}
+	</update>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="IssueReply-Mapper">
+	
+	<select id="selectReplySeqNextValue" resultType="int">
+		/* selectReplySeqNextValue */
+		SELECT ISSUE_REPLY_SEQ.NEXTVAL
+		FROM DUAL
+	</select>
+	
+	<select id="selectReplyList" resultType="issueReply">
+	/* selectReplyList */
+		SELECT C.ISSUE_REPLY_NO, C.ISSUE_SN, C.ISSUE_REPLY_REGDATE, C.ISSUE_REPLY_CONTENT, 
+		C.ISSUE_REPLY_UPDATEDATE, A.MBER_NCNM, B.PRJCT_SN,A.MBER_SN, A.MBER_PHOTO
+		FROM PROJECT_USER B, ISSUE_REPLY C, MEMBER A
+		WHERE A.MBER_SN = B.MBER_SN AND B.USER_SN = C.ISSUE_REPLYER AND C.ISSUE_SN  = #{issue_sn}
+		ORDER BY C.ISSUE_REPLY_NO ASC
+	</select>
+	
+	<select id="countReply" resultType="int">
+		SELECT COUNT(ISSUE_SN) 
+		FROM ISSUE_REPLY
+		WHERE ISSUE_SN = #{issue_sn}
+	</select>
+	
+	<update id="insertReply" parameterType="issueReply">
+		/* insertReply */
+		INSERT INTO ISSUE_REPLY(ISSUE_REPLY_NO, ISSUE_SN, ISSUE_REPLY_CONTENT, ISSUE_REPLYER)
+		VALUES(ISSUE_REPLY_SEQ.NEXTVAL, #{issue_sn}, #{issue_reply_content},
+			  (select user_sn from project_user where mber_sn = #{mber_sn} and prjct_sn = #{prjct_sn}))
+	</update>
+	
+	<update id="updateReply" parameterType="issueReply">
+		/* updateReply */
+		UPDATE ISSUE_REPLY 
+		SET	ISSUE_REPLY_CONTENT=#{issue_reply_content},
+			ISSUE_REPLY_UPDATEDATE=SYSDATE
+		WHERE ISSUE_REPLY_NO = #{issue_reply_no}	
+	</update>
+
+	<update id="deleteReply" parameterType="int">
+		/* deleteReply */
+		DELETE FROM ISSUE_REPLY
+		WHERE ISSUE_REPLY_NO = #{issue_reply_no}
+	</update>
+	
+	
+</mapper>

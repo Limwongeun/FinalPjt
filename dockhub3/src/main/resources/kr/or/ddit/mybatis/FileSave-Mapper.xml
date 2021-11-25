@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="FileSave-Mapper">
+	
+	
+	<select id="selectFileSaveByPrjctSn" resultType="fileSave">
+		select *
+		from file_save
+		where prjct_sn = #{prjct_sn}  
+		 and filesave_ty is null
+		 and filesave_author_code = '0'
+		 order by filesave_update_time desc
+		 
+	</select>
+	
+	<update id="moveNode" parameterType="fileSave">
+		update file_save 
+		set upper_file_sn = #{upper_file_sn}
+		where filesave_sn = #{filesave_sn}
+	</update>
+	<delete id="deleteNode" parameterType="fileSave">
+		delete from file_save
+		where filesave_sn = #{filesave_sn} 
+	</delete>
+	<update id="renameNode" parameterType="fileSave">
+		update file_save
+		set filesave_nm = #{filesave_nm}
+		where filesave_sn = #{filesave_sn}
+	</update>
+	<insert id="insertNode" parameterType="fileSave">
+		<selectKey keyProperty="filesave_sn" order="BEFORE" resultType="int">
+			select SEQ_FILE_SAVE.nextval from dual
+		</selectKey>
+		insert 
+		into 
+		file_save (filesave_sn, upper_file_sn, filesave_crtr, prjct_sn, filesave_nm)
+		values(#{filesave_sn}, #{upper_file_sn}, #{filesave_crtr}, #{prjct_sn}, #{filesave_nm})
+	</insert>
+	
+	<select id="getParent" resultType="fileSave">
+		select filesave_sn from file_save 
+		where filesave_nm = (select prjct_sj from project where prjct_sn = #{prjct_sn})
+		 and filesave_author_code = '0'
+	</select>
+	
+	<select id="getFileList" resultType="fileSave">
+		select filesave_sn, filesave_nm, upper_file_sn, filesave_update_time,filesave_ty, filesave_se_code, prjct_sn, filesave_author_code, filesave_pth, filesize, (select mber_ncnm from member where mber_sn = filesave_crtr) as crtr_ncnm 
+		from file_save where upper_file_sn = #{upper_file_sn}
+		and filesave_author_code = '0'
+		order by (case when filesave_ty is null then 1 else 0 end) desc, filesave_update_time desc
+	</select>
+	
+	<select id="getCountFile" resultType="int">
+		select count(filesave_sn) from file_save where upper_file_sn =#{upper_file_sn} and filesave_author_code = '0' 
+	</select>
+	<insert id="fileUpload" parameterType="fileSave">
+		insert into file_save
+		values(seq_file_save.nextval,
+	        #{upper_file_sn},
+	        #{filesave_crtr},
+	        #{filesave_nm},
+	        sysdate,
+	        #{filesave_ty},
+	        #{filesave_se_code},
+	        #{prjct_sn},
+	        #{filesave_author_code},
+	        #{filesave_pth},
+	        #{filesize}
+	        )
+	
+	</insert>
+	
+	<select id="selectFileByFileSn" resultType="fileSave">
+		select * from file_save where filesave_sn = #{filesave_sn}
+	</select>
+	
+	<select id="selectParentByFileSn" resultType="str">
+		select filesave_nm from file_save where filesave_sn = #{filesave_sn}
+	</select>
+	
+	<update id="updateAuthor">
+		update file_save set filesave_author_code=#{filesave_author_code} where filesave_sn=#{filesave_sn}
+	</update>
+
+	
+</mapper>

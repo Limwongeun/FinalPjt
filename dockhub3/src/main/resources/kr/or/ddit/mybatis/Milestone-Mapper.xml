@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Milestone-Mapper">
+	
+	<sql id="search">
+		<if test="searchType == 't'.toString()">
+			and mile_title like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'w'.toString()">
+			and mile_wrter like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'c'.toString()">
+			and mile_content like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'tc'.toString()">
+			and (
+			mile_title like '%'||#{keyword}||'%'
+			or
+			mile_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'cw'.toString()">
+			and (
+			mile_wrter like '%'||#{keyword}||'%'
+			or
+			mile_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'tcw'.toString()">
+			and (
+			mile_title like '%'||#{keyword}||'%'
+			or
+			mile_wrter like '%'||#{keyword}||'%'
+			or
+			mile_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+	</sql>
+	
+	
+	<select id="selectSearchMilestoneList" resultType="mile">
+		select a.mile_no,
+			a.mile_wrter,
+			a.mile_title,
+			a.mile_content,
+			a.mile_startdate,
+			a.mile_enddate,
+			a.mile_state_code,
+			a.mile_updatetime,
+			b.mber_sn,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='1') as openissue,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='0') as closeissue
+		from milestone a, project_user b , member c
+		where mile_wrter in 
+			(select user_sn from project_user where prjct_sn=#{prjct_sn})
+			and mile_state_code = '1'
+            and a.mile_wrter = b.user_sn
+            and b.mber_sn = c.mber_sn
+			
+			order by mile_no desc
+	</select>
+	<select id="selectSearchMilestoneList2" resultType="mile">
+		select a.mile_no,
+			a.mile_wrter,
+			a.mile_title,
+			a.mile_content,
+			a.mile_startdate,
+			a.mile_enddate,
+			a.mile_state_code,
+			a.mile_updatetime,
+			b.mber_sn,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='1') as openissue,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='0') as closeissue
+		from milestone a, project_user b , member c
+		where mile_wrter in 
+			(select user_sn from project_user where prjct_sn=#{prjct_sn})
+			and mile_state_code = '0'
+            and a.mile_wrter = b.user_sn
+            and b.mber_sn = c.mber_sn
+			
+			order by mile_no desc
+	</select>
+	
+	
+	
+	<select id="selectSearchMilestoneListCount" resultType="int">
+        select
+		count(*)
+		from
+		milestone
+		where mile_no is not null
+        and mile_wrter in (select user_sn from project_user where prjct_sn=#{prjct_sn})
+        and mile_state_code = '1'
+		order by mile_no desc
+	</select>
+		<select id="selectSearchMilestoneListCount2" resultType="int">
+        select
+		count(*)
+		from
+		milestone
+		where mile_no is not null
+        and mile_wrter in (select user_sn from project_user where prjct_sn=#{prjct_sn})
+        and mile_state_code = '0'
+		order by mile_no desc
+	</select>
+	
+<!-- 	<select id="selectMilestoneBymile_no"  resultType="mile"  > -->
+<!-- 		select * from milestone where mile_no=#{mile_no} order by mile_no asc -->
+<!-- 	</select> -->
+	<select id="selectMilestoneBymile_no"  resultType="mile"  >
+		select a.mile_no,
+			a.mile_wrter,
+			a.mile_title,
+			a.mile_content,
+			a.mile_startdate,
+			a.mile_enddate,
+			a.mile_state_code,
+			a.mile_updatetime,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='1') as openissue,
+			(select count(*) from issue where mile_no=a.mile_no and issue_sttus_code='0') as closeissue,
+            (select issue_title from issue where issue_sn = 16 ) as issuetitle
+		from milestone a
+		where mile_wrter in 
+			(select user_sn from project_user where prjct_sn=#{prjct_sn})
+<!-- 			and mile_state_code = '1' -->
+            and mile_no = #{mile_no}
+	</select>
+	
+	<select id="selectCount" resultType="int">
+		select count(*)
+	  	from milestone a, issue b
+	 	where a.mile_no = b.mile_no
+	   	and b.issue_sttus_code = 0
+	   	and a.mile_no = #{mile_no}
+	</select>
+	
+	
+	<update id="insertMilestone" parameterType="mile">
+		insert into milestone (
+		    mile_no,
+		    mile_wrter,
+		    mile_title,
+		    mile_content,
+		    mile_startdate,
+		    mile_enddate
+		) values (
+		    (select case when count(*)=0 then 1 else max(mile_no)+1 end as sn from milestone),
+		    (select user_sn from project_user where mber_sn = #{mber_sn} and prjct_sn = #{prjct_sn}),
+		    #{mile_title},
+		    #{mile_content},
+		    #{mile_startdate},
+		    #{mile_enddate}
+		)
+	</update>
+	
+	<update id="updateMilestone" parameterType="mile">
+		update milestone
+		set mile_title = #{mile_title},
+			mile_content = #{mile_content},
+			mile_state_code = #{mile_state_code},
+			mile_startdate = #{mile_startdate}, 
+			mile_enddate = #{mile_enddate} 
+		where
+		mile_no = #{mile_no}
+	</update>
+	
+	<update id="deleteMilestone" parameterType="int">
+		delete
+		from milestone
+		where mile_no=#{mile_no}
+	</update>
+	
+	<update id="updateMileCode" parameterType="int">
+		update milestone
+		set mile_state_code = 0,
+    	mile_updatetime = sysdate
+		where
+		mile_no = #{mile_no}
+	</update>
+	
+	<update id="updateMileCode2" parameterType="mile">
+		update milestone
+		set mile_state_code = 1,
+    	mile_updatetime = sysdate
+		where
+		mile_no = #{mile_no}
+	</update>
+	
+</mapper>
+
+

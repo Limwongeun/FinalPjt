@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="GroupInvite-Mapper">
+	
+	<select id="selectInviteList" resultType="groupInvite">
+		select 
+			a.group_invite_sn,
+			a.group_sn,
+			a.group_invite_de,
+			a.group_invite_sttus,
+			a.mber_sn,
+			b.group_nm,
+			b.group_job_type_code,
+				(select
+					 count(*)
+				 from 
+				 	group_member 
+			 	where 
+			 		group_sn = a.group_sn) as group_count,
+				(select g.mber_ncnm
+					from 
+						group_hub d ,	group_member f ,member g 
+					where
+						 d.group_sn = f.group_sn
+						 and
+						 f.mber_sn = g.mber_sn
+						and
+						f.group_mbr_role_code = 0
+						and 
+						a.group_sn = d.group_sn
+					) as group_chief
+			from 
+			group_invite a, group_hub b , member c
+			where
+			 a.group_sn = b.group_sn
+			and
+			a.mber_sn = c.mber_sn
+			and
+            a.group_invite_sttus=0
+			and
+			a.mber_sn = #{mber_sn}
+			order by group_invite_sn
+	</select>
+	
+	<update id="inviteResponse" parameterType="groupInvite">
+		update 
+			group_invite
+		set 
+			group_invite_res_de=TO_CHAR(SYSDATE,'YYYY/MM/DD'),
+		    group_invite_sttus=#{group_invite_sttus}
+		where 
+			group_invite_sn=#{group_invite_sn}
+	</update>
+
+
+	<select id="getGroupInvite" resultType="groupInvite" parameterType="int">
+		select 
+		group_sn,
+		mber_sn 
+		from
+		group_invite 
+		where 
+		group_invite_sn = #{group_invite_sn}
+	</select>
+	
+	
+	<insert id="insertInviteUser" parameterType="groupInvite">
+		insert into 
+		group_member
+		(GROUP_MEMBER_NO,
+		 GROUP_SN,
+		  MBER_SN,
+		  GROUP_MBR_ROLE_CODE,
+		  GROUP_MBR_STTUS_CODE) 
+		values
+		(groupmember_seq.nextval,
+		 #{group_sn},
+		 #{mber_sn},
+		 1,
+		 1)
+	</insert>
+
+</mapper>

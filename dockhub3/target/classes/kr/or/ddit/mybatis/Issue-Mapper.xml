@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Issue-Mapper">
+	
+	
+	<select id="selectIssueByPrjctSn" resultType="issue">
+	/* selectIssueByPrjctSn open상태의 이슈 조회 */
+		SELECT	ROWNUM, openIS.* 
+		FROM
+			(
+			SELECT
+				A.ISSUE_SN,
+				A.ISSUE_TITLE,
+				(
+					SELECT
+						D.MILE_NO
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_NO,
+	    		(
+					SELECT
+						D.MILE_TITLE
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_TITLE,
+	    		A.ISSUE_IPCR_SE_CODE,
+	    		C.MBER_NCNM,
+				(
+					SELECT
+						COUNT(*)
+					FROM
+						ISSUE_REPLY
+					WHERE
+						ISSUE_SN = A.ISSUE_SN
+				)  AS REPLYCNT
+			FROM
+				ISSUE         A,
+				PROJECT_USER  B,
+				MEMBER        C
+			WHERE
+				A.ISSUE_WRTER = B.USER_SN
+			AND B.MBER_SN = C.MBER_SN
+			AND A.PRJCT_SN = #{prjct_sn}
+			AND A.ISSUE_STTUS_CODE = '1'
+			ORDER BY A.ISSUE_REGDATE DESC) openIS
+	</select>
+	
+	<select id="selectCnt" resultType="int">
+	/* selectCnt open상태의 이슈 갯수 조회 */
+	select count(*) from issue where prjct_sn = #{prjct_sn} and issue_sttus_code = '1'
+	</select>
+	
+	<select id="selectIssueList" resultType="issue">
+		SELECT
+            a.issue_sn,
+            a.unit_job_sn,
+            a.mile_no,
+            a.issue_wrter,
+            a.issue_title,
+            a.issue_content,
+            a.issue_ipcr_se_code,
+            a.issue_sttus_code,
+            a.issue_regdate,
+            a.issue_enddate,
+            a.issue_updatedate,
+            a.file_sn,
+            a.prjct_sn,
+            c.mber_ncnm,
+            c.mber_sn
+        FROM
+            issue a,
+            project_user b,
+            member c
+        where a.issue_wrter = b.user_sn  
+   		  and b.mber_sn = c.mber_sn
+          and mile_no = #{mile_no}
+          and issue_sttus_code = 1
+          
+	</select>
+	<select id="selectCloseList" resultType="issue">
+		SELECT
+            a.issue_sn,
+            a.unit_job_sn,
+            a.mile_no,
+            a.issue_wrter,
+            a.issue_title,
+            a.issue_content,
+            a.issue_ipcr_se_code,
+            a.issue_sttus_code,
+            a.issue_regdate,
+            a.issue_enddate,
+            a.issue_updatedate,
+            a.file_sn,
+            a.prjct_sn,
+            c.mber_ncnm,
+            c.mber_sn
+        FROM
+            issue a,
+            project_user b,
+            member c
+        where a.issue_wrter = b.user_sn  
+   		  and b.mber_sn = c.mber_sn
+          and mile_no = #{mile_no}
+          and issue_sttus_code = 0          
+	</select>
+<!-- 	<select id="selectCloseList" resultType="issue"> -->
+<!-- 		SELECT -->
+<!--             issue_sn, -->
+<!--             unit_job_sn, -->
+<!--             mile_no, -->
+<!--             issue_wrter, -->
+<!--             issue_title, -->
+<!--             issue_content, -->
+<!--             issue_ipcr_se_code, -->
+<!--             issue_sttus_code, -->
+<!--             issue_regdate, -->
+<!--             issue_enddate, -->
+<!--             issue_updatedate, -->
+<!--             file_sn, -->
+<!--             prjct_sn -->
+<!--         FROM -->
+<!--             issue -->
+<!--         where mile_no = #{mile_no} -->
+<!--           and issue_sttus_code = 0 -->
+          
+<!-- 	</select> -->
+	
+	<select id="selectIssueCloseByPrjctSn" resultType="issue">
+	/* selectIssueCloseByPrjctSn close상태의 이슈 조회 */
+		SELECT	ROWNUM, closeIS.* 
+		FROM
+			(
+			SELECT
+				A.ISSUE_SN,
+				A.ISSUE_TITLE,
+				(
+					SELECT
+						D.MILE_NO
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_NO,
+	    		(
+					SELECT
+						D.MILE_TITLE
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_TITLE,
+	    		A.ISSUE_IPCR_SE_CODE,
+	    		C.MBER_NCNM,
+				(
+					SELECT
+						COUNT(*)
+					FROM
+						ISSUE_REPLY
+					WHERE
+						ISSUE_SN = A.ISSUE_SN
+				)  AS REPLYCNT
+			FROM
+				ISSUE         A,
+				PROJECT_USER  B,
+				MEMBER        C
+			WHERE
+				A.ISSUE_WRTER = B.USER_SN
+			AND B.MBER_SN = C.MBER_SN
+			AND A.PRJCT_SN = #{prjct_sn}
+			AND A.ISSUE_STTUS_CODE = '0'
+			ORDER BY A.ISSUE_REGDATE DESC) closeIS
+	</select>
+	
+	<select id="selectCloseCnt" resultType="int">
+	/* selectCloseCnt close상태의 이슈 갯수 조회 */
+	select count(*) from issue where prjct_sn = #{prjct_sn} and issue_sttus_code = '0'
+	</select>
+
+	<select id="selectDutyCharge" resultType="issue">
+	/* selectDutyCharge regist에서 단위업무 조회하기 */
+	select unit_job_nm, unit_job_sn from duty_charge where user_sn in (select user_sn from project_user where prjct_sn= #{prjct_sn})
+	</select>
+	
+	<insert id="registIssue" parameterType="issue">
+	/* registIssue 이슈등록 */
+		INSERT INTO ISSUE (
+		    ISSUE_SN, UNIT_JOB_SN, MILE_NO, ISSUE_WRTER, ISSUE_TITLE, ISSUE_CONTENT,
+		    ISSUE_IPCR_SE_CODE, ISSUE_REGDATE, PRJCT_SN)
+		VALUES (ISSUE_SEQ.NEXTVAL, #{unit_job_sn}, #{mile_no}, (SELECT USER_SN FROM PROJECT_USER WHERE MBER_SN = #{mber_sn} and prjct_sn = #{prjct_sn}), #{issue_title}, 
+				#{issue_content}, #{issue_ipcr_se_code}, SYSDATE, #{prjct_sn})
+	</insert>
+	
+	<select id="selectMileStoneList" resultType="issue">
+		SELECT	MILE_NO, MILE_TITLE
+		FROM	MILESTONE
+		WHERE	mile_wrter IN (select user_sn from project_user where prjct_sn=#{prjct_sn})
+		and mile_state_code = '1'
+	</select>
+	
+	<select id="getIssueStatus" resultType="str">
+		select issue_sttus_code
+		from issue a, project_user b
+		where a.issue_wrter = b.user_sn
+		and b.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn})
+	</select>
+	<select id="getMberIssueStatus" resultType="str">
+		select issue_sttus_code
+		from issue a, project_user b
+		where a.issue_wrter = b.user_sn
+		and b.user_sn in (select user_sn from project_user where mber_sn = #{mber_sn})
+	</select>
+	
+	<select id="getDetailIssue" resultType="issue">
+		SELECT
+				A.ISSUE_SN,
+				A.ISSUE_TITLE,
+				A.ISSUE_REGDATE,
+				A.ISSUE_STTUS_CODE,
+				A.ISSUE_CONTENT,
+				A.UNIT_JOB_SN,
+				(
+					SELECT
+						D.MILE_NO
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_NO,
+	    		(
+					SELECT
+						D.MILE_TITLE
+					FROM
+						MILESTONE D
+					WHERE
+						A.MILE_NO = D.MILE_NO
+				)  AS MILE_TITLE,
+	    		A.ISSUE_IPCR_SE_CODE,
+	    		C.MBER_NCNM,
+				(
+					SELECT
+						COUNT(*)
+					FROM
+						ISSUE_REPLY
+					WHERE
+						ISSUE_SN = A.ISSUE_SN
+				)AS REPLYCNT,
+				A.PRJCT_SN, C.MBER_SN
+					FROM
+						ISSUE         A,
+						PROJECT_USER  B,
+						MEMBER        C
+					WHERE
+						A.ISSUE_WRTER = B.USER_SN
+					AND B.MBER_SN = C.MBER_SN
+		
+<!-- 					AND A.ISSUE_STTUS_CODE = '1' -->
+					AND A.ISSUE_SN = #{issue_sn}
+	</select>
+	
+	<update id="Issue-Mapper.updateIssue" parameterType="issue">
+		UPDATE
+			ISSUE
+		SET
+			UNIT_JOB_SN = #{unit_job_sn},
+			MILE_NO = #{mile_no},
+			ISSUE_TITLE = #{issue_title},
+			ISSUE_CONTENT = #{issue_content},
+			ISSUE_IPCR_SE_CODE = #{issue_ipcr_se_code},
+			ISSUE_UPDATEDATE = SYSDATE
+		WHERE
+			PRJCT_SN = #{prjct_sn}
+			AND ISSUE_SN = #{issue_sn} 
+	</update>
+	
+	<delete id="Issue-Mapper.deleteIssue" parameterType="issue">
+		DELETE FROM ISSUE
+		WHERE
+			PRJCT_SN = #{prjct_sn}
+			AND ISSUE_SN = #{issue_sn}
+	</delete>
+	
+	<update id="Issue-Mapper.endIssue" parameterType="issue">
+		UPDATE ISSUE
+		SET ISSUE_STTUS_CODE = 0
+		WHERE 
+			PRJCT_SN = #{prjct_sn}
+			AND ISSUE_SN = #{issue_sn}
+	</update>
+	
+	<update id="Issue-Mapper.reIssue" parameterType="issue">
+		UPDATE ISSUE
+		SET ISSUE_STTUS_CODE = 1
+		WHERE 
+			PRJCT_SN = #{prjct_sn}
+			AND ISSUE_SN = #{issue_sn}
+	</update>
+	
+	
+</mapper>

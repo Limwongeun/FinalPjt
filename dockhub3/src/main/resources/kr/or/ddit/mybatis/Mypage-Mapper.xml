@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Mypage-Mapper">
+	
+	<select id="selectRepo" resultType="member">
+		select
+		*
+		from
+		member
+		where mber_sn = #{mber_sn}
+	</select>
+	<update id="updateRepository">
+		UPDATE member
+	    SET
+	        mber_repo = #{mber_repo}
+		WHERE
+	    mber_sn = #{mber_sn}
+	</update>
+	<update id="deleteRepository">
+		UPDATE member
+	    SET
+	        mber_repo = null
+		WHERE
+	    mber_sn = #{mber_sn}
+	</update>
+	
+	<select id="selectProjectCount" resultType="int">
+		select count(*)
+	    from project_user a, project b 
+	    where a.prjct_sn = b.prjct_sn and 
+	    a.mber_sn = 1 and a.end_date is null
+	</select>	
+	<select id="selectProjectCount1" resultType="int">
+        select count(*)
+	    from project_user a, project b 
+	    where a.prjct_sn = b.prjct_sn and 
+	    a.mber_sn = #{mber_sn} and a.end_date is null
+	</select>
+	<select id="selectIssueCount" resultType="int">
+		select count(*)
+  		from 
+        issue a,
+        project_user b,
+        member c
+   		where a.issue_wrter = b.user_sn  
+        and b.mber_sn = c.mber_sn
+    	and c.mber_sn = #{mber_sn}
+	</select>
+	
+	<select id="selectIssueOpen" resultType="int">
+		select count(*)
+	  	from 
+	    issue a,
+	    project_user b,
+	    member c
+	   	where a.issue_wrter = b.user_sn  
+	    and b.mber_sn = c.mber_sn
+	    and a.issue_sttus_code = 1
+	    and c.mber_sn = #{mber_sn}   
+	</select>
+	
+	<select id="selectIssueClose" resultType="int">
+		select count(*)
+	  	from 
+	    issue a,
+	    project_user b,
+	    member c
+	   	where a.issue_wrter = b.user_sn  
+	    and b.mber_sn = c.mber_sn
+	    and a.issue_sttus_code = 0
+	    and c.mber_sn = #{mber_sn}   
+	</select>
+
+	<select id="selectDutychargeCount" resultType="int">
+		select
+		  count(*)
+		from
+		  member a, project_user b, duty_charge c
+		where
+		  a.mber_sn = b.mber_sn
+		  and b.user_sn = c.user_sn
+		  and a.mber_sn = #{mber_sn}
+		order by unit_job_bgnde
+	</select>
+	
+	<select id="selectFileCount" resultType="int">
+		select count(*) from file_save where filesave_crtr = #{mber_sn} and filesave_ty is not null
+	</select>
+	
+	
+</mapper>

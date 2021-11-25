@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- boardImgPath -->
+	<bean id="imgPath" class="java.lang.String">
+		<constructor-arg value="${summernote.img}" />      
+	</bean>
+	
+	<!-- member.picture -->
+	<bean id="picturePath" class="java.lang.String">
+		<constructor-arg value="${member.picture.upload}" />      
+	</bean>
+	<bean id="projectPicturePath" class="java.lang.String">
+		<constructor-arg value="${project.picture.upload}" />      
+	</bean>
+	
+	
+		<!--common file upload -->
+	<bean id="fileUploadPath" class="java.lang.String">
+		<constructor-arg value="${common.upload}"/>
+	</bean>
+
+	<bean id="CommonAttachDAO" 
+		  class="kr.or.ddit.dao.CommonAttachDAOImpl"
+	      p:sqlSession-ref="sqlSession" />  
+
+
+	<bean id="CommonAttachService"
+	      class="kr.or.ddit.service.CommonAttachServiceImpl"
+	      p:commonAttachDAO-ref="CommonAttachDAO"
+	      />
+
+
+	
+	<!-- file upload -->
+	<!-- <bean id="fileUploadPath" class="java.lang.String">
+		<constructor-arg value="${pds.upload}"/>
+	</bean> --> 
+	<!-- login user log path -->
+	<bean id="loginUserLogSavePath" class="java.lang.String">
+		<constructor-arg value="${login.user.log}" />
+	</bean>
+	
+	<bean id="loginUserLogSaveFileName" class="java.lang.String">
+		<constructor-arg value="login_user_log.csv" />
+	</bean>
+	<!-- file upload -->
+	<bean id="fileSaveUploadPath" class="java.lang.String">
+		<constructor-arg value="${filesave.upload}"/>
+	</bean>
+	<!-- DAO	 -->
+	<bean id="menuDAO"
+	      class="kr.or.ddit.dao.MenuDAOImpl"
+	      p:sqlSession-ref="sqlSession"
+	      />
+	      	      
+	<bean id="memberDAO" 
+		  class="kr.or.ddit.dao.MemberDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+	      
+	<bean id="projectDAO"
+	      class="kr.or.ddit.dao.ProjectDAOImpl"
+	      p:sqlSession-ref="sqlSession"
+	      />
+	      
+	<bean id="projectUserDAO"
+	      class="kr.or.ddit.dao.ProjectUserDAOImpl"
+	      p:sqlSession-ref="sqlSession"
+	      />
+
+	<bean id="projectInviteDAO"
+	      class="kr.or.ddit.dao.ProjectInviteDAOImpl"
+	      p:sqlSession-ref="sqlSession"
+	      />
+	      
+	<bean id="knowhowDAO" 
+		  class="kr.or.ddit.dao.KnowhowDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+
+	<bean id="repoDAO" 
+		  class="kr.or.ddit.dao.RepositoryDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+	      
+	<bean id="RecruitDAO" 
+		  class="kr.or.ddit.dao.RecruitDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+	      
+   	<bean id="memberScheduleDAO" 
+		  class="kr.or.ddit.dao.MemberScheduleDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+   	<bean id="FileSaveDAO" 
+		  class="kr.or.ddit.dao.FileSaveDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+   	<bean id="DutyChargeDAO" 
+		  class="kr.or.ddit.dao.DutyChargeDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+      <bean id="mypageDAO" 
+	  class="kr.or.ddit.dao.MypageDAOImpl"
+      p:sqlSession-ref="sqlSession" />
+   	<bean id="MileStoneDAO" 
+		  class="kr.or.ddit.dao.MileStoneDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+   	<bean id="MeetingDAO" 
+		  class="kr.or.ddit.dao.MeetingDAOImpl"
+	      p:session-ref="sqlSession" />
+   	<bean id="MeetingUserDAO" 
+		  class="kr.or.ddit.dao.MeetingUserDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+	      
+		<bean id="MyFileDAO"
+		  class="kr.or.ddit.dao.MyFileDAOImpl"
+		  p:sqlSession-ref="sqlSession"></bean>
+
+   	<bean id="IssueDAO" 
+		  class="kr.or.ddit.dao.IssueDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+
+     	<bean id="KnowhowReplyDAO" 
+		  class="kr.or.ddit.dao.KnowhowReplyDAOImpl"
+	      p:session-ref="sqlSession" />
+     	<bean id="GroupDAO" 
+		  class="kr.or.ddit.dao.GroupDAOImpl"
+	      p:session-ref="sqlSession" />
+     	<bean id="GroupMemberDAO" 
+		  class="kr.or.ddit.dao.GroupMemberDAOImpl"
+	      p:session-ref="sqlSession" />
+	    <bean id="IssueReplyDAO" 
+	      class="kr.or.ddit.dao.IssueReplyDAOImpl"
+		  p:sqlSession-ref="sqlSession"	/>
+	<bean id="MyFileService"
+		  class="kr.or.ddit.service.MyFileServiceImpl"
+		  p:myFileDAO-ref="MyFileDAO"></bean> 
+		  
+	   	<bean id="MyDutyChargeDAO" 
+		  class="kr.or.ddit.dao.MyDutyChargeDAOImpl"
+	      p:sqlSession-ref="sqlSession" />	  
+	      
+       	<bean id="GroupInviteDAO" 
+		  class="kr.or.ddit.dao.GroupInviteDAOImpl"
+	      p:session-ref="sqlSession" />
+	      
+	   	<bean id="RecruitApplyDAO" 
+		  class="kr.or.ddit.dao.RecruitApplyDAOImpl"
+	      p:sqlSession-ref="sqlSession" />	
+	    <bean id="MyIssueDAO" 
+		  class="kr.or.ddit.dao.MyIssueDAOImpl"
+	      p:sqlSession-ref="sqlSession" />
+	<!-- 	
+	<bean id="boardDAO" 
+		  class="kr.or.ddit.dao.BoardDAOImpl"
+		  p:sqlSession-ref="sqlSession" />
+		
+	<bean id="replyDAO" 
+	      class="kr.or.ddit.dao.ReplyDAOImpl"
+		  p:sqlSession-ref="sqlSession" />
+		
+	<bean id="pdsDAO"
+		  class="kr.or.ddit.dao.PdsDAOImpl"
+		  p:sqlSession-ref="sqlSession" />
+	<bean id="noticeDAO"
+	      class="kr.or.ddit.dao.NoticeDAOImpl"
+	      p:sqlSession-ref="sqlSession"
+	      />	      	
+	<bean id="attachDAO" 
+		  class="kr.or.ddit.dao.AttachDAOImpl"
+		  p:sqlSession-ref="sqlSession" /> -->
+	<bean id="loginUserLogDAO"
+	      class="kr.or.ddit.dao.LoginUserLogDAOImpl"
+	      p:sqlsession-ref="sqlSession" />
+	      
+    <bean id="projectExclusionDAO"
+		  class="kr.or.ddit.dao.ProjectExclusionDAOImpl"
+		  p:sqlSession-ref="sqlSession" />
+		  
+    <bean id="projectScheduleDAO" 
+	      class="kr.or.ddit.dao.ProjectScheduleDAOImpl"
+	      p:sqlSession-ref="sqlSession" />	      
+	
+    <bean id="MemScheduleNotificationDAO" 
+	      class="kr.or.ddit.dao.MemScheduleNotificationDAOImpl"
+	      p:sqlSession-ref="sqlSession" />	      
+
+    <bean id="BestOfDockDAO" 
+	      class="kr.or.ddit.dao.BestOfDockDAOImpl"
+		  p:session-ref="sqlSession"
+	      />	      
+	
+	<!-- service  -->
+	<bean id="menuService"
+	      class="kr.or.ddit.service.MenuServiceImpl"
+	      p:menuDAO-ref="menuDAO"
+	      />
+	<bean id="memberService"
+		  class="kr.or.ddit.service.MemberServiceImpl"
+		  p:memberDAO-ref="memberDAO"
+		  />
+	<bean id="projectService"
+		  class="kr.or.ddit.service.ProjectServiceImpl"
+		  p:projectDAO-ref="projectDAO"
+		  p:memberDAO-ref="memberDAO"
+		  />
+
+	<bean id="projectUserService"
+	      class="kr.or.ddit.service.ProjectUserServiceImpl"
+	      p:projectUserDAO-ref="projectUserDAO"
+		  />
+
+	<bean id="projectInviteService"
+	      class="kr.or.ddit.service.ProjectInviteServiceImpl"
+	      p:projectInviteDAO-ref="projectInviteDAO"
+		  />
+		  
+	<bean id="knowhowService"
+		  class="kr.or.ddit.service.KnowhowServiceImpl"
+		  p:knowhowDAO-ref="knowhowDAO"
+		  p:knowhowReplyDAO-ref="KnowhowReplyDAO"
+		  />
+		  
+	<bean id="repoService"
+		  class="kr.or.ddit.service.RepositoryServiceImpl"
+		  p:repositoryDAO-ref="repoDAO"
+		  />
+
+	<bean id="RecruitService"
+		  class="kr.or.ddit.service.RecruitServiceImpl"
+		  p:recruitDAO-ref="RecruitDAO"
+		  />
+   	<bean id="memberScheduleService"
+		  class="kr.or.ddit.service.MemberScheduleServiceImpl"
+		  p:memberScheduleDAO-ref="memberScheduleDAO"
+		  />
+   	<bean id="FileSaveService"
+		  class="kr.or.ddit.service.FileSaveServiceImpl"
+		  p:fileSaveDAO-ref="FileSaveDAO"
+		  />
+   	<bean id="DutyChargeService"
+		  class="kr.or.ddit.service.DutyChargeServiceImpl"
+		  p:dutychargeDAO-ref="DutyChargeDAO"
+		  />
+	<bean id="mypageService"
+		  class="kr.or.ddit.service.MypageServiceImpl"
+		  p:mypageDAO-ref="mypageDAO"
+		  />
+	<bean id="MileStoneService"
+		  class="kr.or.ddit.service.MileStoneServiceImpl"
+		  p:mileStoneDAO-ref="MileStoneDAO"
+		  />
+	<bean id="MeetingService"
+		  class="kr.or.ddit.service.MeetingServiceImpl"
+		  p:meetingDAO-ref="MeetingDAO"
+		  />
+	<bean id="MeetingUserService"
+		  class="kr.or.ddit.service.MeetingUserServiceImpl"
+		  p:meetingUserDAO-ref="MeetingUserDAO"
+		  />
+	<bean id="IssueService"
+		  class="kr.or.ddit.service.IssueServiceImpl"
+		  p:issueDAO-ref="IssueDAO"
+		  />
+	<bean id="KnowhowReplyService"
+		  class="kr.or.ddit.service.KnowhowReplyServiceImpl"
+		  p:knowhowReplyDAO-ref="KnowhowReplyDAO"
+		  />
+	<bean id="GroupService"
+		  class="kr.or.ddit.service.GroupServiceImpl"
+		  p:groupDAO-ref="GroupDAO"
+		  p:groupMemberDAO-ref="GroupMemberDAO"
+		  />
+	<bean id="GroupMemberService"
+		  class="kr.or.ddit.service.GroupMemberServiceImpl"
+		  p:groupMemberDAO-ref="GroupMemberDAO"
+		  />
+	<bean id="MyDutyChargeService"
+		class="kr.or.ddit.service.MyDutyChargeServiceImpl"
+		p:myDutyChargeDAO-ref="MyDutyChargeDAO" />	
+		
+		
+	<bean id="GroupInviteService"
+		  class="kr.or.ddit.service.GroupInviteServiceImpl"
+		  p:groupInviteDAO-ref="GroupInviteDAO"
+		  />		  
+	<bean id="RecruitApplyService"
+	      class="kr.or.ddit.service.RecruitApplyServiceImpl"
+	      p:recruitApplyDAO-ref="RecruitApplyDAO"
+	      />	  
+	<bean id="IssueReplyService"
+	      class="kr.or.ddit.service.IssueReplyServiceImpl"
+	      p:replyDAO-ref="IssueReplyDAO"
+	      />
+	<bean id="MyIssueService"
+		  class="kr.or.ddit.service.MyIssueServiceImpl"
+		  p:myIssueDAO-ref="MyIssueDAO"
+		  />
+	<!-- <bean id="boardService"
+	      class="kr.or.ddit.service.BoardServiceImpl"
+	      p:boardDAO-ref="boardDAO"
+	      p:replyDAO-ref="replyDAO"
+	      />
+	<bean id="pdsService"
+	      class="kr.or.ddit.service.PdsServiceImpl"
+	      p:pdsDAO-ref="pdsDAO"
+	      p:attachDAO-ref="attachDAO"
+	      />	
+	<bean id="noticeService"
+		  class="kr.or.ddit.service.NoticeServiceImpl"
+		  p:noticeDAO-ref="noticeDAO"
+		  />
+		  
+	<bean id="replyService"
+	      class="kr.or.ddit.service.ReplyServiceImpl"
+	      p:replyDAO-ref="replyDAO"
+	      />    -->
+	<bean id="loginUserLogService"
+	      class="kr.or.ddit.service.LoginUserLogServiceImpl"
+	      p:loginUserLogDAO-ref="loginUserLogDAO"
+	      />  
+    <bean id="ProjectExclusionService"
+        class="kr.or.ddit.service.ProjectExclusionServiceImpl"
+        p:projectExclusionDAO-ref="projectExclusionDAO"
+        />	  
+    <bean id="projectScheduleService"
+        class="kr.or.ddit.service.ProjectScheduleServiceImpl"
+        p:projectScheduleDAO-ref="projectScheduleDAO"
+        />	  
+    <bean id="MemScheduleNotificationService"
+        class="kr.or.ddit.service.MemScheduleNotificationServiceImpl"
+        p:memScheduleNotification-ref="MemScheduleNotificationDAO"
+        />	  
+    <bean id="BestOfDockService"
+        class="kr.or.ddit.service.BestOfDockServiceImpl"
+        p:bestOfDockDAO-ref="BestOfDockDAO"
+        />	  
+	             
+</beans>
+
+
+
+
+
+
+

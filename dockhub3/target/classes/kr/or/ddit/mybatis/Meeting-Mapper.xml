@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Meeting-Mapper">
+	
+	<select id="selectChatMeetingList" parameterType="int" resultType="meeting">
+         select
+		 b.MTG_SN, b.PRJCT_SN, b.MTG_DATE, b.MTG_TITLE, b.MTG_CONTENT, b.FILE_SN, b.MTG_STTUS_CODE, b.MTG_TYPE_CODE,
+         a.mber_ncnm
+		 from 
+		 member a, meeting b, project_user c
+		 where a.mber_sn = c.mber_sn 
+         and b.mtg_reg_user = c.user_sn
+         and b.prjct_sn = #{prjct_sn}
+         and b.mtg_type_code = '0'
+		 order by b.mtg_date desc
+	</select>
+	
+	<select id="selectChatMeetingListTotalCount" resultType="int">
+         select count(b.mtg_sn)
+		 from 
+		 member a, meeting b, project_user c
+		 where a.mber_sn = c.mber_sn 
+         and b.mtg_reg_user = c.user_sn
+         and b.prjct_sn = #{prjct_sn}
+         and b.mtg_type_code = '0'
+	</select>
+	<select id="selectZoomMeetingList" parameterType="int" resultType="meeting">
+         select
+		 b.MTG_SN, b.PRJCT_SN, b.MTG_DATE, b.MTG_TITLE, b.MTG_CONTENT, b.FILE_SN, b.MTG_STTUS_CODE, b.MTG_TYPE_CODE,
+         a.mber_ncnm
+		 from 
+		 member a, meeting b, project_user c
+		 where a.mber_sn = c.mber_sn 
+         and b.mtg_reg_user = c.user_sn
+         and b.prjct_sn = #{prjct_sn}
+         and b.mtg_type_code = '1'
+		 order by b.mtg_date desc
+	</select>
+	
+	<select id="selectZoomMeetingListTotalCount" resultType="int">
+         select count(b.mtg_sn)
+		 from 
+		 member a, meeting b, project_user c
+		 where a.mber_sn = c.mber_sn 
+         and b.mtg_reg_user = c.user_sn
+         and b.prjct_sn = #{prjct_sn}
+         and b.mtg_type_code = '1'
+	</select>
+	
+	<select id="selectMeetingSeqNext" resultType="int">
+		select meeting_seq.nextval as mtg_sn from dual
+	</select>
+	
+	<select id="selectUserFromProject" resultType="projectUser">
+		select a.user_sn,b.mber_ncnm, b.mber_sn
+		from project_user a, member b, user_roll c
+		where a.prjct_sn = #{prjct_sn}
+		and a.mber_sn=b.mber_sn
+        and a.role_sn = c.role_sn
+        and c.prjct_author_code != 2
+	</select>
+	
+	<update id="insertMeeting" parameterType="meeting">
+		insert into
+		meeting 
+		(mtg_sn,
+		prjct_sn,
+		mtg_date,
+		mtg_title,
+		mtg_content,
+		mtg_type_code,
+        mtg_reg_user)
+		values 
+		(#{mtg_sn},
+		#{prjct_sn},
+		#{mtg_date},
+		#{mtg_title},
+		#{mtg_content},
+		#{mtg_type_code},
+		(select user_sn from project_user where prjct_sn = #{prjct_sn} and mber_sn = #{mber_sn})
+		)
+	</update>
+	
+	<select id="selectMeetingByMtg_sn" parameterType="int" resultType="meeting">
+		select a.MTG_SN, 
+		a.PRJCT_SN, 
+		a.MTG_DATE, 
+		a.MTG_TITLE, 
+		a.MTG_CONTENT, 
+		a.FILE_SN, 
+		a.MTG_STTUS_CODE, 
+		a.MTG_TYPE_CODE, 
+		a.MTG_REG_USER,
+		b.mber_ncnm,
+		b.mber_sn
+		from meeting a, member b, project_user c
+		where a.mtg_reg_user = c.user_sn
+		and c.mber_sn = b.mber_sn
+		and a.mtg_sn = #{mtg_sn}
+	</select>
+	<select id="selectMeetingUserByMtg_sn" resultType="member">
+		select a.mber_ncnm, b.user_sn, a.mber_sn, a.mber_photo
+		from member a, project_user b, meeting_user c
+		where a.mber_sn = b.mber_sn
+		and b.user_sn = c.user_sn
+		and c.mtg_sn = #{mtg_sn}
+	
+	</select>
+	<update id="deleteMeeting" parameterType="int">
+		delete
+		from meeting
+		where mtg_sn=#{mtg_sn}
+	</update>
+	
+	<update id="updateMeeting" parameterType="meeting">
+		update meeting
+		set mtg_title = #{mtg_title},
+		    mtg_content = #{mtg_content},
+		    mtg_date = #{mtg_date}
+		where
+		mtg_sn = #{mtg_sn}
+	</update>
+	<insert id="insertMeetingUser" parameterType="meeting">
+		insert into meeting_user(mtg_sn,user_sn) values(#{mtg_sn},#{user_sn})
+	</insert>
+	<delete id="deleteMeetingUser">
+		delete from meeting_user
+		where mtg_sn = #{mtg_sn}
+	</delete>
+	<update id="updateMeetingSttus" parameterType="meeting">
+		update meeting 
+		set mtg_sttus_code=#{mtg_sttus_code}
+		where mtg_sn = #{mtg_sn}
+	</update>
+	<update id="updateMeetingIp">
+	    update meeting 
+	    set mtg_ip = #{mtg_ip} 
+	    where mtg_sn = #{mtg_sn}
+	</update>
+	<insert id="insertMeetingMem" parameterType="meeting">
+		insert into meeting_pro values(#{mtg_sn},#{user_sn},#{mber_ncnm})
+	</insert>
+	<delete id="deleteMeetingMem" parameterType="meeting">
+		delete from meeting_pro where mtg_sn = #{mtg_sn} and user_sn = #{user_sn}
+	</delete>
+	<select id="selectMeetingMember" resultType="meeting" parameterType="int">
+		select user_sn,mber_ncnm from meeting_pro where mtg_sn = #{mtg_sn}
+	</select>
+	
+	<update id="updateMeetingFile">
+	/* updateMeetingFile 미팅에 회의록 등록 */
+		update meeting	
+		set file_sn = #{file_sn}	
+		where mtg_sn = #{mtg_sn}
+	</update>
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CommonAttach-Mapper">
+	
+	<select id="selectAttachSeqNextVal" resultType="int">
+		   select commonAttach_seq.nextval from dual
+	</select>
+	<insert id="insertCommonAttach" parameterType="commonAttach">
+	/*insertCommonAttach 공통 파일 insert*/
+		insert into common_attach(file_sn, file_ordr, file_wrter, file_nm, flpth, file_ty, file_size, file_job_se_code)
+    	values(#{file_sn}, #{file_ordr}, #{file_wrter}, #{file_nm}, #{flpth},#{file_ty}, #{file_size}, #{file_job_se_code})
+	</insert>
+	<select id="selectAttachByFileSn" resultType="commonAttach">
+	/*selectAttachByFileSn 공통파일번호에 해당하는 파일 목록 가져오기*/
+	    select file_sn, file_ordr, file_wrter, file_nm, flpth, file_ty, file_size, file_rgsde, file_job_se_code
+      	from common_attach where file_sn = #{file_sn}
+      	order by file_ordr
+	</select>
+	<select id="selectAttachForDown" resultType="commonAttach" parameterType="commonAttach">
+		/*selectAttachForDown 다운을 위해 파일 한개의 정보 가져오기*/
+        select file_sn, file_ordr, file_wrter, file_nm, flpth, file_ty, file_size, file_rgsde, file_job_se_code
+        from common_attach 
+        where file_sn = #{file_sn} and file_ordr = #{file_ordr}
+	</select>
+	<delete id="deleteAttachByFileSn">
+	/*deleteAttachByFileSn 파일번호로 해당 파일 삭제하기*/
+		delete from common_attach where file_sn = #{file_sn}
+	</delete>
+</mapper>

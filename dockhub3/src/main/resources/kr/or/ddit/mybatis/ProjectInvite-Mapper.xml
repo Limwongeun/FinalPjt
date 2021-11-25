@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProjectInvite-Mapper">
+	
+	
+	<select id="getProjectInvite" resultType="projectInvite">
+		/* getProjectInvite */
+		select
+		    a.prjct_invite_sn,
+		    a.prjct_invite_de,
+		    a.prjct_invite_res_de,
+		    a.prjct_invite_sttus,
+		    a.prjct_sn,
+		    a.mber_sn,
+		    (select mber_ncnm from member b where a.mber_sn = b.mber_sn) as mber_ncnm,
+		    (select mber_nm from member b where a.mber_sn = b.mber_sn) as mber_nm
+		from
+		    project_invite a
+		where prjct_sn = #{prjct_sn}
+		and prjct_invite_sttus != 2
+		and prjct_invite_sttus != 1
+		order by prjct_invite_de desc
+	</select>
+	
+	<select id="getProjectInviteRefuse" resultType="projectInvite">
+		/* getProjectInviteRefuse */
+		select
+		    a.prjct_invite_sn,
+		    a.prjct_invite_de,
+		    a.prjct_invite_res_de,
+		    a.prjct_invite_sttus,
+		    a.prjct_sn,
+		    a.mber_sn,
+		    (select mber_ncnm from member b where a.mber_sn = b.mber_sn) as mber_ncnm,
+		    (select mber_nm from member b where a.mber_sn = b.mber_sn) as mber_nm
+		from
+		    project_invite a
+		where prjct_sn = #{prjct_sn}
+		and prjct_invite_sttus = 2
+		order by prjct_invite_de desc
+	</select>
+	
+	
+	
+	<select id="selectProjectProfile" resultType="projectInvite">
+		/* selectProjectProfile */
+		select a.mber_ncnm, a.mber_nm, c.role_sn, c.role_nm, a.mber_photo, a.mber_repo, b.prjct_sn, a.mber_sn
+		from member a, project_user b, user_roll c
+		where a.mber_sn = b.mber_sn
+		and b.role_sn = c.role_sn
+		and b.prjct_sn = #{prjct_sn}
+        and a.mber_sn = #{mber_sn}
+	</select>
+		
+	<select id="selectProjectInviteUser" resultType="projectInvite">
+		/* selectProjectInviteUser */	
+		select mber_ncnm, mber_nm, mber_sn
+		from member 
+		where mber_sn not in (select mber_sn from project_user where prjct_sn =#{prjct_sn})
+		          and mber_sn not in (select mber_sn from project_invite where prjct_sn =#{prjct_sn} and prjct_invite_sttus=2)
+		<if test="search != null and search != ''">
+		    and mber_ncnm like '%'|| #{search}||'%'
+		</if>
+    </select>
+    
+    <insert id="insertPjtUser" parameterType="projectInvite">
+    	/* insertPjtUser */
+    	insert into project_invite (
+		    prjct_invite_sn,
+		    PRJCT_INVITE_DE,
+		    prjct_invite_sttus,
+		    prjct_sn,
+		    mber_sn,
+		    role_sn
+		) values (
+		    invite_seq.nextval,
+		    TO_CHAR(SYSDATE,'YYYY/MM/DD'),
+		    0,
+		    #{prjct_sn},
+		    #{mber_sn},
+		    #{role_sn}
+		)
+    </insert>
+    
+    <insert id="insertPjtRole" parameterType="projectInvite">
+    	/* insertPjtRole */
+		INSERT INTO PROJECT_USER
+		(USER_SN, PRJCT_SN, ROLE_SN, MBER_SN, START_DATE)
+		VALUES(
+		(SELECT MAX(NVL(USER_SN,0))+1 FROM PROJECT_USER), #{prjct_sn}, #{lastRoleSn}, #{mber_sn}, TO_CHAR(SYSDATE,'YYYY/MM/DD'))
+    </insert>
+    <select id="getInviteByMberSn" resultType="projectInvite">
+	    /* getInviteByMberSn 회원에게 온 초대 목록조회*/
+	    select a.PRJCT_INVITE_SN,
+	    c.prjct_sj,
+		a.PRJCT_INVITE_DE,
+		a.PRJCT_SN,
+		b.role_sn,
+		b.ROLE_NM,
+		c.prjct_photo
+		from PROJECT_INVITE a, USER_ROLL b, project c
+		where a.role_sn=b.role_sn 
+		and a.prjct_sn = c.prjct_sn
+		and a.mber_sn = #{mber_sn}
+		and a.PRJCT_INVITE_STTUS ='0'
+    </select>
+	<update id="inviteResponse" parameterType="projectInvite">
+		/* inviteResponse 초대 수락,거절 업데이트*/
+		update project_invite
+		set prjct_invite_res_de=TO_CHAR(SYSDATE,'YYYY/MM/DD'),
+		    prjct_invite_sttus=#{prjct_invite_sttus}
+		where prjct_invite_sn=#{prjct_invite_sn}
+	</update>
+	<select id="getPrjctInvite" resultType="projectInvite" parameterType="int">
+		/* getPrjctInvite 프로젝트 초대 정보 가져오기*/
+		select prjct_sn, role_sn, mber_sn from project_invite where prjct_invite_sn = #{prjct_invite_sn}
+	</select>
+	<insert id="insertInviteUser" parameterType="projectInvite">
+		/* insertInviteUser 초대수락시 projectUser에 추가*/
+		insert into project_user(user_sn, prjct_sn, role_sn, mber_sn) 
+		values(prjctuser_seq.nextval, #{prjct_sn}, #{role_sn}, #{mber_sn})
+	</insert>
+	<select id="selectProjectInviteUserCnt" resultType="int">
+	select count(*)
+		from member 
+		where mber_sn not in (select mber_sn from project_user where prjct_sn =#{prjct_sn})
+		and mber_sn not in (select mber_sn from project_invite where prjct_sn =#{prjct_sn} and prjct_invite_sttus=2)
+		<if test="search != null and search != ''">
+		    and mber_ncnm like '%'|| #{search}||'%'
+		</if>
+	</select>
+</mapper>

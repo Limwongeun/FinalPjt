@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Schedule-Mapper">
+	
+	<select id="memScheList" resultType="memberSchedule">
+		select
+		mber_schdul_bgnde,
+		mber_schdul_endde,
+		mber_schdul_nm,
+		mber_schdul_cn,
+		mber_schdul_sn,
+		mber_sn,
+		mber_schdul_color,
+		mber_allday
+		from 
+		member_schedule
+		where
+		mber_sn =#{mber_sn}
+	</select>
+	
+	<select id="selectScheduleByMberschdulsn" parameterType="int" resultType="memberSchedule">
+		select *
+		from member_schedule
+		where
+		mber_schdul_sn = #{mber_schdul_sn}
+	</select>
+	
+	<select id="commingScheduleByMberschdulsn" resultType="memberSchedule">
+   		select
+		mber_schdul_bgnde,
+		mber_schdul_endde,
+		mber_schdul_nm,
+		mber_schdul_cn,
+		mber_schdul_sn,
+		mber_sn,
+		mber_schdul_color,
+		mber_allday
+		from 
+		member_schedule
+		where
+		mber_sn = #{mber_sn}
+		and 
+        
+		mber_schdul_bgnde > case when mber_allday = 0 then to_char(sysdate,'yyyy-mm-dd hh24:mi')
+                                 when mber_allday = 1 then to_char(to_date(sysdate,'yyyy-mm-dd'),'yyyy-mm-dd')
+                                 end
+        order by mber_schdul_bgnde
+	</select>
+	
+	<select id="commingScheduleByPrjctSchdulSn" resultType="projectSchedule">
+		select
+		prjct_schdul_bgnde,
+		prjct_schdul_endde,
+		prjct_schdul_nm,
+		prjct_schdul_cn,
+		prjct_schdul_sn,
+		user_sn,
+		prjct_schdul_color,
+		prjct_allday
+		from 
+		project_schedule
+		where
+		prjct_sn = #{prjct_sn}
+		and 
+		prjct_schdul_bgnde > case when prjct_allday = 0 then to_char(sysdate,'yyyy-mm-dd hh24:mi')
+                                 when prjct_allday = 1 then to_char(to_date(sysdate,'yyyy-mm-dd'),'yyyy-mm-dd')
+                                 end
+		
+	</select>
+	
+	<update id="insertMemberSchedule">
+		insert into
+		member_schedule
+		(mber_schdul_sn,
+		mber_schdul_bgnde,
+		mber_schdul_endde,
+		mber_schdul_nm,
+		mber_schdul_cn,
+		mber_sn,
+		mber_schdul_color,
+		mber_allday)
+		values(
+		#{mber_schdul_sn},
+		#{mber_schdul_bgnde},
+		#{mber_schdul_endde},
+		#{mber_schdul_nm},
+		#{mber_schdul_cn},
+		#{mber_sn},
+		#{mber_schdul_color},
+		#{mber_allday}
+		)
+	</update>
+	
+	<update id="updateMemberSchedule" parameterType="memberSchedule">
+		update 
+		member_schedule
+		set 
+		mber_schdul_bgnde=#{mber_schdul_bgnde},
+		mber_schdul_endde=#{mber_schdul_endde}, 
+		mber_schdul_nm=#{mber_schdul_nm}, 
+		mber_schdul_cn=#{mber_schdul_cn},
+		mber_schdul_color=#{mber_schdul_color},
+		mber_allday=#{mber_allday}
+		where mber_schdul_sn=#{mber_schdul_sn}
+		
+	</update>
+	
+	<update id="deleteMemberSchedule" parameterType="int">
+		delete 
+		from member_schedule 
+		where mber_schdul_sn=#{mber_schdul_sn}
+	</update>
+	
+	<update id="updateMemberScheduleByDrag" parameterType="memberSchedule">
+		update 
+		MEMBER_SCHEDULE
+		set 
+		MBER_SCHDUL_BGNDE=#{mber_schdul_bgnde},
+		MBER_SCHDUL_ENDDE=#{mber_schdul_endde} 
+		where MBER_SCHDUL_SN=#{mber_schdul_sn}
+		
+	</update>
+	
+	<select id="selectCalendarSeqNext" resultType="int">
+		select calendar_seq.nextval as mber_schdul_sn from dual
+	</select>
+	
+	<select id="selectProjectCalendarSeqNext" resultType="int">
+		select projectcalendar_seq.nextval as prjct_schdul_sn from dual
+	</select>
+	
+	<select id="projectScheduleList" resultType="projectSchedule">
+		select * from project_schedule where prjct_sn=#{prjct_sn}
+	</select>
+	
+	<select id="selectProjectSchedule" parameterType="int" resultType="projectSchedule">
+		select *
+		from project_schedule
+		where
+		prjct_schdul_sn = #{prjct_schdul_sn}
+	</select>
+	
+	<update id="insertProjectSchedule">
+		insert into
+		project_schedule
+		(prjct_schdul_sn,
+		prjct_sn,
+		user_sn,
+		prjct_schdul_bgnde,
+		prjct_schdul_endde,
+		prjct_schdul_nm,
+		prjct_schdul_cn,
+		prjct_schdul_color,
+		prjct_allday)
+		values(
+		#{prjct_schdul_sn},
+		#{prjct_sn},
+		(select user_sn from project_user where prjct_sn = #{prjct_sn} and mber_sn=#{mber_sn}),
+		#{prjct_schdul_bgnde},
+		#{prjct_schdul_endde},
+		#{prjct_schdul_nm},
+		#{prjct_schdul_cn},
+		#{prjct_schdul_color},
+		#{prjct_allday}
+		)
+	</update>
+	<update id="updateProjectSchedule" parameterType="projectSchedule">
+		update 
+		project_schedule
+		set 
+		prjct_schdul_bgnde=#{prjct_schdul_bgnde},
+		prjct_schdul_endde=#{prjct_schdul_endde}, 
+		prjct_schdul_nm=#{prjct_schdul_nm}, 
+		prjct_schdul_cn=#{prjct_schdul_cn},
+		prjct_schdul_color=#{prjct_schdul_color},
+		prjct_allday=#{prjct_allday}
+		where prjct_schdul_sn=#{prjct_schdul_sn}
+		
+	</update>
+	<update id="updateProjectScheduleByDrag" parameterType="projectSchedule">
+		update 
+		PROJECT_SCHEDULE
+		set 
+		PRJCT_SCHDUL_BGNDE=#{prjct_schdul_bgnde},
+		PRJCT_SCHDUL_ENDDE=#{prjct_schdul_endde} 
+		where PRJCT_SCHDUL_SN=#{prjct_schdul_sn}
+		
+	</update>
+
+	<update id="deleteProjectSchedule" parameterType="int">
+		delete 
+		from project_schedule 
+		where prjct_schdul_sn=#{prjct_schdul_sn}
+	</update>
+</mapper>

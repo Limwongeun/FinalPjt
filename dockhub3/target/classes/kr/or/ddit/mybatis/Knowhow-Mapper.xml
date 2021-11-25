@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Knowhow-Mapper">
+	
+			<sql id="search">
+		<if test="searchType == 't'.toString()">
+			and knh_title like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'w'.toString()">
+			and b.mber_ncnm like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'tc'.toString()">
+			and (
+			knh_title like '%'||#{keyword}||'%'
+			or
+			knh_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'cw'.toString()">
+			and (
+			b.mber_ncnm like '%'||#{keyword}||'%'
+			or
+			knh_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'tcw'.toString()">
+			and (
+			knh_title like '%'||#{keyword}||'%'
+			or
+			b.mber_ncnm like '%'||#{keyword}||'%'
+			or
+			knh_content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+	</sql>
+	
+	
+	
+	<select id="selectSearchKnowhowList" resultType="knowhow">
+		select a.knh_no,
+		a.mber_sn,
+		a.knh_title,
+		a.knh_content,
+		a.knh_likecnt,
+		a.knh_regdate,
+		a.knh_updatedate,
+		a.file_sn,
+		b.mber_ncnm
+		from knowhow a , member b
+		where a.mber_sn = b.mber_sn
+		<include refid="search" />
+		and
+		knh_no is not null
+		order by knh_no desc
+		
+	</select>
+	
+	<select id="selectknowhowByKnh_no" resultType="knowhow" parameterType="int">
+		select
+		*
+		from
+		knowhow
+		where knh_no = #{knh_no}
+	</select>
+	
+	<select id="selectSearchKnowhowListCount" resultType="int">
+		select
+		count(*)
+		from
+		knowhow a, member b
+		where knh_no is not null
+        and a.mber_sn = b.mber_sn
+        <include refid="search" />	
+		order by knh_no desc
+	</select>
+	
+	<update id="updateKnowhow" parameterType="knowhow">
+		update knowhow
+		set
+		knh_title=#{knh_title},
+		knh_content=#{knh_content}
+		where knh_no=#{knh_no}
+		
+	</update>
+	
+	<update id="insertKnowhow" parameterType="knowhow">
+		insert 
+		into 
+		knowhow
+		(knh_no,knh_title,mber_sn,knh_content)
+		values
+		(#{knh_no},#{knh_title},#{mber_sn},#{knh_content})
+	</update>
+	
+	<select id="selectKnowhowSeqNext" resultType="int">
+		select knowhow_seq.nextval as knh_no from dual
+	</select> 
+	
+	<update id="deleteKnowhow" parameterType="knowhow">
+		delete 
+		from knowhow 
+		where knh_no=#{knh_no}
+	</update>
+	
+	<select id="likeExist" resultType="int">
+	/* 좋아요 여부 판독 */
+		select count(mber_sn) from like_knowhow where knh_no = #{knh_no} and mber_sn = #{mber_sn}
+	</select>
+	
+	<update id="likeKnowhow">
+	/* 좋아요 증가 */
+		insert into like_knowhow(knh_no, mber_sn) values(#{knh_no},#{mber_sn})
+	</update>
+	
+	<update id="updateLikeKnowhow">
+	/* 해당 노하우 좋아요 증가,해제 */
+		UPDATE knowhow
+		SET
+		    knh_likecnt = (select count(knh_no) from like_knowhow where knh_no = #{knh_no})
+		where
+		    knh_no = #{knh_no}
+	</update>
+	
+	<update id="cancelLike">
+	/* 좋아요 해제 */
+		delete from like_knowhow where knh_no=#{knh_no} and mber_sn=#{mber_sn}
+	</update>
+	
+</mapper>

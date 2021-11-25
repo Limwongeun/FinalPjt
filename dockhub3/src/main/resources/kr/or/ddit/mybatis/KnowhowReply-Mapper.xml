@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="KnowhowReply-Mapper">
+	
+	<select id="selectReplySeqNextValue" resultType="int" >
+		select knowhowreply_seq.nextval
+		from dual		
+	</select>
+	
+	<select id="countKnowohowReply" resultType="int">
+		select count(knowhow_reply_no) 
+		from knowhow_reply
+		where knh_no=#{knh_no}
+	</select>
+	
+	<select id="selecetReplyList" resultType="knowhowreply">
+		select * 
+		from knowhow_reply
+		order by knowhow_reply_no desc
+	</select>
+	
+	<select id="selectKnowhowReplyList" resultType="KnowhowReply">
+        select a.knowhow_reply_no,
+		a.knh_no,
+		a.knowhow_replyer,
+		a.knowhow_replytext,
+		a.regdate,
+		a.updatedate,
+		b.mber_ncnm
+		from knowhow_reply a , member b
+		where b.mber_sn = a.knowhow_replyer
+		order by knowhow_reply_no desc
+	</select>
+	
+	<select id="selectKnowhowAsyncioReplyList" resultType="KnowhowReply">
+		select a.knowhow_reply_no,
+		a.knh_no,
+		a.knowhow_replyer,
+		a.knowhow_replytext,
+		a.regdate,
+		a.updatedate,
+		b.mber_ncnm
+		from knowhow_reply a , member b
+		where b.mber_sn = a.knowhow_replyer
+		  and a.knh_no = #{kno_no}
+		order by knowhow_reply_no desc
+	</select>
+	
+	<update id="insertKnowhowReply">
+		INSERT INTO knowhow_reply (
+		    knowhow_reply_no,
+		    knh_no,
+		    knowhow_replyer,
+		    knowhow_replytext
+		) VALUES (
+		    #{knowhow_reply_no},
+		    #{knh_no},
+		    #{knowhow_replyer},
+		    #{knowhow_replytext}
+		)
+	</update>
+	
+	<update id="updateKnowhowReply">
+		UPDATE knowhow_reply
+		    SET
+		        knowhow_replytext = #{knowhow_replytext},
+		        updatedate = to_char(SYSDATE, 'YYYY-MM-DD HH24:MI')
+		WHERE
+		    knowhow_reply_no = #{knowhow_reply_no}
+	</update>
+	
+	<update id="deleteKnowhowReply">
+		DELETE FROM knowhow_reply
+		WHERE
+		    knowhow_reply_no = #{knowhow_reply_no}
+	</update>
+</mapper>

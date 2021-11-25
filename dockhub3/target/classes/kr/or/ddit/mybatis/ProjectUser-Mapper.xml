@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProjectUser-Mapper">
+	
+	<select id="getProjectUser" resultType="projectUser">
+		/* getProjectUser */
+		select a.mber_ncnm, a.mber_nm, a.mber_photo, c.role_nm, c.prjct_author_code, a.mber_sn, b.prjct_sn, c.role_sn
+		from member a, project_user b, user_roll c
+		where a.mber_sn = b.mber_sn
+		and b.role_sn = c.role_sn
+		and b.prjct_sn = #{prjct_sn}
+		and c.prjct_author_code != 2
+		order by b.role_sn asc
+	</select>
+
+
+	<select id="getProjectUserAuthor" resultType="str">
+		/* getProjectUserAuthor */
+		select prjct_author_code from user_roll where role_sn = (select role_sn from project_user where mber_sn=#{mber_sn} and prjct_sn=#{prjct_sn})
+	</select>
+	
+	<update id="updateUserAuthorChange" parameterType="projectUser">
+		/* updateUserAuthorChange */
+		UPDATE PROJECT_USER 
+		SET ROLE_SN = #{role_sn}
+		WHERE MBER_SN = #{mber_sn} AND PRJCT_SN = #{prjct_sn}
+	</update>
+
+	<select id="getDashUserByPrjct" resultType="projectUser">
+	/* getDashUserByPrjct 대시보드에서 구성원 및 진척도 */
+		select b.mber_sn, b.mber_ncnm, b.mber_nm, c.role_nm, 
+		(select count(*) from duty_charge where user_sn=a.user_sn) as allDuty,
+		(select count(*) from duty_charge where unit_job_pro = 100 and user_sn=a.user_sn) as proDuty,
+		(select count(*) from issue where issue_wrter=a.user_sn) as allIssue,
+		(select count(*) from issue where issue_wrter=a.user_sn and issue_sttus_code = '0') as proIssue
+		from project_user a, member b, user_roll c
+		where a.mber_sn=b.mber_sn
+		and a.role_sn = c.role_sn
+		and c.prjct_author_code != 2
+		and a.end_date is null
+		and a.prjct_sn=#{prjct_sn}
+	</select>
+	<insert id="insertPL">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'PL','0')
+	</insert>
+	<insert id="insertAA">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'AA','1')
+	</insert>
+	<insert id="insertTA">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'TA','1')
+	</insert>
+	<insert id="insertDA">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'DA','1')
+	</insert>
+	<insert id="insertUA">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'UA','1')
+	</insert>
+	<insert id="insertBA">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'BA','1')
+	</insert>
+	<insert id="insertAnuse">
+		insert into user_roll(role_sn, prjct_sn, role_nm, prjct_author_code) values(userroll_seq.nextval, (select max(nvl(prjct_sn,0)) from project),'비활성화','2')
+	</insert>
+	<insert id="insertPrjctUser">
+	insert into project_user(user_sn, prjct_sn, role_sn, mber_sn) 
+values (prjctuser_seq.nextval,
+        (select max(nvl(prjct_sn,0)) from project),
+        (select role_sn from user_roll where prjct_author_code =0 and prjct_sn=(select max(nvl(prjct_sn,0)) from project)),
+        #{mber_sn})
+	</insert>
+	<select id="selectUserByMberPrjct" resultType="int" parameterType="projectUser">
+	/* selectUserByMberPrjct 프로젝트 참여를 위해 참여 여부 확인 */
+		select count(user_sn) from project_user where mber_sn = #{mber_sn} and prjct_sn =#{prjct_sn}
+	</select>
+	
+	<insert id="insertRecruitUser">
+	/* insertRecruitUser 면접 합격시 프로젝트 유저로 등록 */
+		insert into project_user(user_sn, prjct_sn, role_sn, mber_sn, start_date)
+		values(PRJCTUSER_SEQ.nextval, 
+		(select prjct_sn from recruit where pblanc_sn = (select pblanc_sn from recruit_apply where pblanc_sport_sn = #{pblanc_sport_sn})),
+		(select role_sn 
+		from user_roll a, recruit b, recruit_apply c 
+		where a.prjct_sn = b.prjct_sn
+		  and b.pblanc_sn = c.pblanc_sn
+		  and c.pblanc_sport_sn = #{pblanc_sport_sn}
+		  and 
+		    (case when c.pblanc_sport_role = 0 then 'DA'
+		     when c.pblanc_sport_role = 1 then 'AA'
+		     when c.pblanc_sport_role = 2 then 'TA'
+		     when c.pblanc_sport_role = 3 then 'UA'
+		     end) = a.role_nm),
+		(select pblanc_sport_man_sn from recruit_apply where pblanc_sport_sn = #{pblanc_sport_sn}),
+		to_char(SYSDATE, 'YYYY-MM-DD'))
+	</insert>
+	<select id="selectUserSnByMberPrjct" resultType="int">
+	/* selectUserSnByMberPrjct userSn가져오기 */
+	select user_sn from project_user where mber_sn = #{mber_sn} and prjct_sn = #{prjct_sn}
+	</select>
+</mapper>

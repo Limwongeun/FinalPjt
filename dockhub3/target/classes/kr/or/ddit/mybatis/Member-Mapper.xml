@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Member-Mapper">
+	
+	<select id="selectMemberById" parameterType="str" resultType="member">
+		select
+		*
+		from member
+		where mber_id=#{mber_id}
+	</select>
+	
+	<select id="selectMemberBySn" parameterType="str" resultType="member">
+		select
+		*
+		from member
+		where mber_sn=#{mber_sn}
+	</select>
+	
+	<select id="findIdByNmAndPhone" resultType="member">
+		select
+		mber_id 
+		from member 
+		where mber_nm=#{mber_nm}
+		and
+		mber_moblphon_no=#{mber_moblphon_no}
+	</select>
+	
+	<select id="findId" parameterType="str" resultType="member">
+		select mber_id
+		from member 
+        where mber_nm = #{mber_nm}
+	</select>	
+	
+	<select id="selectMemberByNcnm" parameterType="str" resultType="member">
+		select
+		*
+		from member
+		where mber_ncnm=#{mber_ncnm}
+	</select>
+	
+	<insert id="mJoin" parameterType="member">
+		insert into member (
+    	mber_sn,mber_id,mber_nm,mber_password,mber_ncnm,mber_moblphon_no,mber_photo,mber_repo,mber_career_code,mber_brthdy,mber_sexdstn
+		) values (
+	    #{mber_sn},#{mber_id},#{mber_nm},#{mber_password},#{mber_ncnm},#{mber_moblphon_no},#{mber_photo},#{mber_repo},#{mber_career_code},#{mber_brthdy},#{mber_sexdstn}
+		)
+	</insert>
+	<select id="selectMemberNext" resultType="str">
+		select mem_seq.nextval as mber_sn from dual
+	</select>
+	
+	<select id="selectMemberDetail" parameterType="str" resultType="member">
+		select
+		mber_id,
+		mber_sn,
+		mber_nm,
+		mber_ncnm,
+		mber_moblphon_no,
+		mber_repo,
+		mber_brthdy,
+		mber_sexdstn,
+		mber_career_code,
+		mber_sttus_code,
+		mber_photo
+		from member 
+		where mber_sn = #{mber_sn}
+	</select>
+	
+	<update id="updateMember" parameterType="member">
+		update member
+		 set 
+		mber_nm = #{mber_nm},
+		mber_ncnm = #{mber_ncnm},
+		mber_password = #{mber_password},
+		mber_repo = #{mber_repo},
+		mber_brthdy=#{mber_brthdy},
+		mber_sexdstn=#{mber_sexdstn},
+		mber_career_code=#{mber_career_code},
+		mber_sttus_code=#{mber_sttus_code},
+		mber_moblphon_no=#{mber_moblphon_no},
+		mber_photo=#{mber_photo}
+		where
+		mber_sn = #{mber_sn}
+	
+	</update>
+	
+	<select id="getPrjctMber" resultType="member">
+	/* getPrjctMber 프로젝트에 참가중인 회원의 목록*/
+    select a.mber_sn, a.mber_ncnm, a.mber_nm, a.mber_photo, a.mber_author_code 
+	from member a, project_user b, user_roll c
+	where a.mber_sn = b.mber_sn
+    and c.role_sn = b.role_sn
+	and b.end_date is null
+	and b.prjct_sn = #{prjct_sn}
+    and c.prjct_author_code != 2
+	</select>
+	
+	
+	
+</mapper>

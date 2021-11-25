@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="DutyCharge-Mapper">
+	
+	<select id="selectSearchDutyChargeList" resultType="dutyCharge">
+		select
+		    C.unit_job_sn, B.user_sn, C.unit_job_nm, C.unit_job_bgnde, C.unit_job_endde, C.unit_job_reqre_time, C.unit_job_cn, C.unit_job_pro, A.mber_sn, A.mber_ncnm
+		from
+		    member A, project_user B, duty_charge C
+		where
+		    C.user_sn in (select user_sn from project_user where prjct_sn=#{prjct_sn})
+		    and A.mber_sn in (select mber_sn from project_user where prjct_sn = #{prjct_sn}) 
+		    and A.mber_sn = B.mber_sn
+		    and B.user_sn = C.user_sn
+		    and C.job_sttus_code = 1
+			order by unit_job_bgnde 
+	</select>	
+
+	<select id="selectSearchDutyChargeListCount" resultType="int">
+		select
+		count(*)
+		from
+		duty_charge
+		where user_sn is not null
+		order by user_sn desc
+	</select>
+	
+	<select id="selectSearchDutyChargeTime" resultType="dutyCharge" >
+		<![CDATA[
+		select 
+		case when unit_job_pro = 100 then '종료'
+		     when unit_job_endde<sysdate and unit_job_pro != 100 then '지연중'
+		     when unit_job_bgnde<sysdate then '진행중'
+		     when unit_job_bgnde>sysdate then '대기중' 
+		else '상태이상'
+		end as sttus from duty_charge
+		]]>
+	</select>
+
+	<select id="selectknowhowByKnh_no" resultType="dutycharge" parameterType="int">
+		select
+		*
+		from duty_charge
+		where unit_job_sn = #{unit_job_sn}
+	</select>
+
+	<select id="selectProjectMember" resultType="member">
+		select A.mber_ncnm, B.user_sn 
+		from member A, project_user B 
+		where B.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn}) and A.mber_sn = B.mber_sn
+		and b.end_date is null
+	</select>
+	
+	<update id="insertDutyCharge" parameterType="dutycharge">
+		insert
+        into 
+        duty_charge
+        (unit_job_sn,unit_job_nm, user_sn, unit_job_bgnde, unit_job_endde,unit_job_pro)
+        values
+        (#{unit_job_sn},#{unit_job_nm},#{user_sn},#{unit_job_bgnde},#{unit_job_endde},#{unit_job_pro} )
+	</update>
+	
+	<select id="selectDutyChargeSeqNext" resultType="int">
+		select dutycharge_seq.nextval as unit_job_sn from dual
+	</select> 
+	
+	<update id="modifyDutyCharge" parameterType="dutycharge">
+		UPDATE duty_charge
+		SET
+		    unit_job_nm = #{unit_job_nm}, 
+		    unit_job_bgnde = #{unit_job_bgnde}, 
+		    unit_job_endde = #{unit_job_endde}, 
+		    unit_job_pro = #{unit_job_pro}, 
+		    user_sn = #{user_sn}
+		WHERE
+		        unit_job_sn = #{unit_job_sn}
+	</update>
+	
+	<update id="deleteDutyCharge" parameterType="dutycharge">
+        UPDATE duty_charge
+		SET
+		    job_sttus_code = 0
+		WHERE
+		        unit_job_sn = #{unit_job_sn}
+	</update>
+	
+	<select id="getDutyStatus" resultType="str">
+		/*getDutyStatus 프로젝트에 해당하는 단위업무들의 상태 조회*/
+		<![CDATA[
+		select
+	    case WHEN a.unit_job_pro = 100 THEN '종료'
+	         WHEN a.unit_job_endde < sysdate THEN '지연'
+	         WHEN a.unit_job_bgnde < sysdate THEN '진행'
+	         WHEN a.unit_job_bgnde > sysdate THEN '대기'
+	    else '상태이상'
+	    end as unit_job_status 
+		from duty_charge a, project_user b
+		where a.user_sn = b.user_sn
+		and b.user_sn in (select user_sn from project_user where prjct_sn = #{prjct_sn})
+		]]>
+	</select>
+	<select id="getMberDutyStatus" resultType="str">
+		/*getMberDutyStatus 프로젝트에 해당하는 단위업무들의 상태 조회*/
+		<![CDATA[
+		select
+	    case WHEN a.unit_job_pro = 100 THEN '종료'
+	         WHEN a.unit_job_endde < sysdate THEN '지연'
+	         WHEN a.unit_job_bgnde < sysdate THEN '진행'
+	         WHEN a.unit_job_bgnde > sysdate THEN '대기'
+	    else '상태이상'
+	    end as unit_job_status 
+		from duty_charge a, project_user b
+		where a.user_sn = b.user_sn
+		and b.user_sn in (select user_sn from project_user where mber_sn = #{mber_sn})
+		]]>
+	</select>
+	
+</mapper>

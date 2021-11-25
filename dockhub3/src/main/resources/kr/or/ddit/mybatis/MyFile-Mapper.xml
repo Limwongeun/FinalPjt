@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MyFile-Mapper">
+	<sql id="search">
+		<if test="searchType == 't'.toString()">
+			and a.filesave_nm like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'p'.toString()">
+			and b.prjct_sj like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'tcw'.toString()">
+			and (
+			a.filesave_nm like '%'||#{keyword}||'%'
+			or
+			b.prjct_sj like '%'||#{keyword}||'%'						
+			)			
+		</if>
+	</sql>
+	<select id="selectFileByMberSn" resultType="fileSave">
+		select a.filesave_sn, a.filesave_nm, a.filesave_update_time, a.filesave_ty, b.prjct_sj, a.filesize
+			from file_save a, project b
+			where a.prjct_sn=b.prjct_sn
+			<include refid="search" />
+	        and a.filesave_crtr = #{mber_sn}
+			 and a.filesave_ty is not null
+	         and a.filesave_sn !=0
+	          and a.filesave_author_code = '0'
+			 order by a.filesave_update_time desc
+	</select>
+
+	<select id="getCountFile" resultType="int">
+		select count(*)
+		from file_save a, project b
+		where a.prjct_sn=b.prjct_sn
+        and a.filesave_crtr = #{mber_sn}
+		 and a.filesave_ty is not null
+         and a.filesave_sn !=0
+          and a.filesave_author_code = '0'
+	</select>
+	
+	
+	<select id="selectIcon" resultType="fileSave">
+	    select *
+		from file_save
+		where prjct_sn in (select a.prjct_sn from project_user a, user_roll b where a.role_sn = b.role_sn and a.mber_sn=#{mber_sn} and b.prjct_author_code != '2')
+		 and filesave_ty is null
+		  and filesave_author_code = '0'
+		 order by filesave_update_time desc
+	</select>
+	
+	<select id="selectPrjctByFile" resultType="int">
+		select prjct_sn from file_save where filesave_sn = #{filesave_sn}
+	</select>
+	<select id="getFileList1" resultType="fileSave">
+		    select filesave_sn, filesave_nm, upper_file_sn, filesave_update_time,filesave_ty, filesave_se_code, prjct_sn, filesave_author_code, filesave_pth, filesize, (select mber_ncnm from member where mber_sn = filesave_crtr) as crtr_ncnm 
+		from file_save 
+        where prjct_sn in (select prjct_sn from project_user where mber_sn=#{mber_sn})
+        and upper_file_sn = #{upper_file_sn}
+         and filesave_author_code = '0'
+		order by (case when filesave_ty is null then 1 else 0 end) desc, filesave_update_time desc
+	</select>
+	
+	<select id="getCountFile1" resultType="int">
+		select count(*) 
+		from file_save 
+        where prjct_sn in (select prjct_sn from project_user where mber_sn=#{mber_sn})
+         and filesave_author_code = '0'
+        and upper_file_sn = #{upper_file_sn}
+	</select>
+	
+	
+</mapper>

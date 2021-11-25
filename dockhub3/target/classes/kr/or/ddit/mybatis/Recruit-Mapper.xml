@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Recruit-Mapper">
+
+	<select id="selectSearchRecruitList" resultType="recruit">
+		/* selectSearchRecruitList 공고 리스트 조회*/
+		select PBLANC_SN, 
+		       PBLANC_SJ, 
+		       PBLANC_CN, 
+		       PBLANC_WRTER, 
+		       PBLANC_RGSDE, 
+		       PBLANC_RDCNT, 
+		       PBLANC_UPDDE, 
+		       PRJCT_SN, 
+		       PBLANC_BGNDE, 
+		       PBLANC_CLOS_DE, 
+		       FILE_SN,
+		       (select mber_ncnm from member where mber_sn = recruit.pblanc_wrter) as mber_ncnm,
+		        (select prjct_sj from project where prjct_sn = recruit.prjct_sn) as prjct_sj
+		from recruit
+		where pblanc_sn is not null
+		order by PBLANC_RGSDE desc
+	</select>
+	
+	<select id="selectSearchRecruitList2" resultType="recruit">
+		select PBLANC_SN, 
+		       PBLANC_SJ, 
+		       PBLANC_CN, 
+		       PBLANC_WRTER, 
+		       PBLANC_RGSDE, 
+		       PBLANC_RDCNT, 
+		       PBLANC_UPDDE, 
+		       PRJCT_SN, 
+		       PBLANC_BGNDE, 
+		       PBLANC_CLOS_DE, 
+		       FILE_SN,
+		       (select mber_ncnm from member where mber_sn = recruit.pblanc_wrter) as mber_ncnm,
+		        (select prjct_sj from project where prjct_sn = recruit.prjct_sn) as prjct_sj
+		from recruit
+		where pblanc_sn is not null
+	    <![CDATA[
+      	and ROWNUM <= 5 
+      	]]>
+		order by PBLANC_CLOS_DE desc
+	</select>
+	
+	
+	<select id="selectSearchRecruitList3" resultType="recruit">
+		select * from test1
+        <![CDATA[
+        where ROWNUM <= 3
+        ]]>
+	</select>
+	
+	
+	<select id="selectRecruitByPblanc_sn" parameterType="int" resultType="recruit">
+	/* selectRecruitByPblanc_sn 공고 번호로 공고 디테일 조회*/
+		select PBLANC_SN, 
+		       PBLANC_SJ, 
+		       PBLANC_CN, 
+		       PBLANC_WRTER, 
+		       PBLANC_RGSDE, 
+		       PBLANC_RDCNT, 
+		       PBLANC_UPDDE, 
+		       PRJCT_SN, 
+		       PBLANC_BGNDE, 
+		       PBLANC_CLOS_DE, 
+		       FILE_SN,
+		       (select mber_ncnm from member where mber_sn = recruit.pblanc_wrter) as mber_ncnm,
+		        (select prjct_sj from project where prjct_sn = recruit.prjct_sn) as prjct_sj,
+		        pblanc_stts_code
+		from recruit 
+		where pblanc_sn = #{pblanc_sn}
+	</select>
+	
+	<select id="selectSearchRecruitListCount" resultType="int">
+		select
+		count(*)
+		from 
+		recruit
+		where pblanc_sn is not null
+		order by pblanc_sn desc
+	</select>
+	
+	<update id="increaseViewCount" parameterType="int">
+		update recruit
+		set pblanc_rdcnt=pblanc_rdcnt+1
+		where pblanc_sn=#{pblanc_sn}
+	</update>
+	
+	<update id="insertRecruit" parameterType="recruit">
+		insert into recruit
+		(pblanc_sn,
+		 pblanc_sj,
+		 pblanc_cn,
+		 pblanc_wrter,
+		 prjct_sn,
+		 pblanc_rgsde,
+		 pblanc_bgnde,
+		 pblanc_clos_de,
+		 file_sn)
+		 values
+		 (#{pblanc_sn},
+		 #{pblanc_sj},
+		 #{pblanc_cn},
+		 #{pblanc_wrter},
+		 #{prjct_sn},
+		 to_char(SYSDATE, 'YYYY-MM-DD'),
+		 #{pblanc_bgnde},
+		 #{pblanc_clos_de},
+		 #{file_sn})
+	</update>
+	
+	<select id="selectProjectByMbersn" resultType="project">
+		select * from project where prjct_crtr=#{prjct_crtr} order by prjct_sn asc
+	</select>
+	
+	<select id="selectRecruitNext" resultType="int">
+		select recruit_seq.nextval as pblanc_sn from dual
+	</select>
+	
+	<update id="updateRecruit" parameterType="recruit">
+		update recruit
+		set pblanc_sj = #{pblanc_sj}, 
+		    pblanc_cn = #{pblanc_cn},
+		    pblanc_bgnde = #{pblanc_bgnde},
+		    pblanc_clos_de = #{pblanc_clos_de},
+		    pblanc_updde = to_char(SYSDATE, 'YYYY-MM-DD'),
+		    file_sn = #{file_sn}
+		where 
+		pblanc_sn = #{pblanc_sn}
+	</update>
+	
+	<update id="deleteRecruit" parameterType="int">
+		delete
+		from recruit
+		where pblanc_sn=#{pblanc_sn}
+	</update>
+	<select id="selectMyRecruitList" resultType="recruit" parameterType="str">
+		/* selectMyRecruitList 내가 작성한 공고 목록 조회*/
+		select pblanc_sn, 
+		pblanc_sj, 
+       	pblanc_cn, 
+       	pblanc_rgsde, 
+       	pblanc_rdcnt, 
+       	pblanc_updde, 
+       	prjct_sn, 
+       	pblanc_bgnde, 
+       	pblanc_clos_de, 
+        (select prjct_sj from project where prjct_sn = recruit.prjct_sn) as prjct_sj,
+        (select count(pblanc_sport_sn) from recruit_apply where pblanc_sn=recruit.pblanc_sn) as apply_cnt
+		from recruit
+		where pblanc_wrter = #{pblanc_wrter}
+		order by PBLANC_CLOS_DE desc
+	</select>
+	
+	<select id="selectMyRecruitCnt" resultType="int">
+	/* selectMyRecruitCnt 내가 작성한 공고 목록 갯수 조회*/
+		select count(*)
+		from recruit
+		where pblanc_wrter = #{pblanc_wrter}
+	</select>
+	
+</mapper>
+
+

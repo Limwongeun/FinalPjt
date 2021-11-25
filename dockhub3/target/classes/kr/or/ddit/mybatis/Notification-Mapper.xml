@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Notification-Mapper">
+
+
+	<update id="insertMemberScheduleNotification">
+       insert into
+       mem_schedule_notification
+       (mber_ntcn_sn,mber_schdul_sn,mber_ntcn_time)
+        values(#{mber_ntcn_sn},#{mber_schdul_sn},#{mber_ntcn_time})
+	</update>
+	
+	<select id="selectCalendarSeqNext" resultType="int">
+		select notifycation_seq.nextval as mber_ntcn_sn from dual
+	</select>
+	
+	<select id="selectMemberScheduleNotificationHours" resultType="memberScheduleNotification" >
+		select a.mber_ntcn_time,
+		a.mber_schdul_sn ,
+		b.mber_schdul_nm,
+		a.mber_ntcn_sn
+		from mem_schedule_notification a, member_schedule b , member c where a.mber_schdul_sn = b.mber_schdul_sn
+		and b.mber_sn = c.mber_sn
+		and c.mber_sn = #{mber_sn}
+		<![CDATA[
+		and a.mber_ntcn_time < to_char(sysdate+1/24, 'yyyy-mm-dd hh24:mi')
+		and a.mber_ntcn_time > to_char(sysdate,'yyyy-mm-dd hh24:mi')
+		]]>
+		and a.ntcn_cnfirm_at_code = 0
+	</select>
+
+	<select id="selectMemberScheduleNotificationCount" resultType="int" >
+		select count(*)
+		from mem_schedule_notification a, member_schedule b , member c where a.mber_schdul_sn = b.mber_schdul_sn
+		and b.mber_sn = c.mber_sn
+		and c.mber_sn = #{mber_sn}
+		<![CDATA[
+		and a.mber_ntcn_time < to_char(sysdate+1/24, 'yyyy-mm-dd hh24:mi')
+		and a.mber_ntcn_time > to_char(sysdate,'yyyy-mm-dd hh24:mi')
+		]]>
+		and a.ntcn_cnfirm_at_code = 0
+
+	</select>
+	
+	<update id="updateMemberScheduleNotification" parameterType="memberScheduleNotification">
+		update mem_schedule_notification set ntcn_cnfirm_at_code = 1 where mber_ntcn_sn = #{mber_ntcn_sn}
+	</update>	
+	
+	<update id="insertProjectScheduleNotification">
+       insert
+       into
+      	 pjt_schedule_notification
+	       (prjct_ntcn_sn,
+	       prjct_schdul_sn,
+	       prjct_ntcn_time)
+       values
+       (#{prjct_ntcn_sn},
+       #{prjct_schdul_sn},
+       #{prjct_ntcn_time})
+	</update>
+	
+</mapper>

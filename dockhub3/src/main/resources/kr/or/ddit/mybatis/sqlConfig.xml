@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+
+<configuration>
+
+		
+	<typeAliases>
+		<typeAlias type="java.lang.String" alias="str" />
+		<typeAlias type="java.lang.Integer" alias="int" />
+		
+		<typeAlias type="kr.or.ddit.dto.MemberVO"  alias="member"/>	
+		<typeAlias type="kr.or.ddit.dto.MenuVO" alias="menu" />
+		<typeAlias type="kr.or.ddit.dto.ProjectVO"  alias="project"/>	
+		<typeAlias type="kr.or.ddit.dto.ProjectUserVO"  alias="projectUser"/>	
+		<typeAlias type="kr.or.ddit.dto.ProjectInviteVO"  alias="projectInvite"/>	
+		<typeAlias type="kr.or.ddit.dto.LoginUserLogVO" alias="log" />
+		<typeAlias type="kr.or.ddit.dto.KnowhowVO" alias="knowhow" />
+		<typeAlias type="kr.or.ddit.dto.RepositoryVO" alias="repo" />
+		<typeAlias type="kr.or.ddit.dto.RecruitVO" alias="recruit" />
+		<typeAlias type="kr.or.ddit.dto.FileSaveVO" alias="fileSave" />
+		<typeAlias type="kr.or.ddit.dto.MemberScheduleVO"  alias="memberSchedule"/>	
+		<typeAlias type="kr.or.ddit.dto.DutyChargeVO"  alias="dutyCharge"/>	
+		<typeAlias type="kr.or.ddit.dto.ProjectScheduleVO"  alias="projectSchedule"/>
+		<typeAlias type="kr.or.ddit.dto.ExclusionVO"  alias="projectExclusion"/>
+		<typeAlias type="kr.or.ddit.dto.MilestoneVO"  alias="mile"/>	
+		<typeAlias type="kr.or.ddit.dto.MeetingVO"  alias="meeting"/>	
+		<typeAlias type="kr.or.ddit.dto.MeetingUserVO"  alias="meetingUser"/>	
+		<typeAlias type="kr.or.ddit.dto.IssueVO" alias="issue" />
+		<typeAlias type="kr.or.ddit.dto.KnowhowReplyVO" alias="KnowhowReply" />
+		<typeAlias type="kr.or.ddit.dto.GroupVO" alias="group" />
+		<typeAlias type="kr.or.ddit.dto.GroupMemberVO" alias="groupMember" />
+		<typeAlias type="kr.or.ddit.dto.GroupInviteVO" alias="groupInvite" />
+		<typeAlias type="kr.or.ddit.dto.RecruitApplyVO" alias="recruitApply" />
+		<typeAlias type="kr.or.ddit.dto.CommonAttachVO" alias="commonAttach" />
+		<typeAlias type="kr.or.ddit.dto.IssueReplyVO" alias="issueReply" />
+		<typeAlias type="kr.or.ddit.dto.MemScheduleNotificationVO" alias="memberScheduleNotification" />
+		<typeAlias type="kr.or.ddit.dto.ProjectScheduleNotificationVO" alias="projectScheduleNotification" />
+		<typeAlias type="kr.or.ddit.dto.BestMemberVO" alias="bestMember" />
+		<typeAlias type="kr.or.ddit.dto.BestKnowhowVO" alias="bestKnowhow" />
+		<typeAlias type="kr.or.ddit.dto.BestProjectVO" alias="bestProject" />
+	</typeAliases>			
+	
+</configuration>
+
+
+
+
+
+

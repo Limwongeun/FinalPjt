@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MydutyCharge-Mapper">
+	
+	<sql id="search">
+		<if test="searchType == 'u'.toString()">
+			and c.unit_job_nm like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'p'.toString()">
+			and q.prjct_sj like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'up'.toString()">
+			and (
+			c.unit_job_nm like '%'||#{keyword}||'%'
+			or
+			q.prjct_sj like '%'||#{keyword}||'%'						
+			)			
+		</if>
+	</sql>
+	
+	<select id="selectDutyChargeList" resultType="dutyCharge">
+		/* selectDutyChargeByMberSn */
+		SELECT	c.unit_job_sn, c.user_sn, c.unit_job_nm, c.unit_job_bgnde, c.unit_job_endde, c.unit_job_reqre_time, 
+				c.unit_job_cn, c.unit_job_pro,
+				(select a.prjct_sj from project a, project_user b where a.prjct_sn=b.prjct_sn and b.user_sn= c.user_sn) as prjct_sj,
+				<![CDATA[
+				(select	case	when f.unit_job_pro = 100 then '종료'
+								when f.unit_job_endde < sysdate then '지연'
+								when f.unit_job_bgnde < sysdate then '진행'
+								when f.unit_job_bgnde > sysdate then '시작전'
+								else '상태이상'
+								end as mystatus
+				from duty_charge f
+				where f.unit_job_sn=c.unit_job_sn) as myst
+				]]>
+		from duty_charge c, project_user d, member e, project q
+		where c.user_sn = d.user_sn
+		and e.mber_sn = d.mber_sn
+		and e.mber_sn = #{mber_sn}
+		and d.prjct_sn = q.prjct_sn
+		and c.job_sttus_code = '1'
+		<include refid="search" />
+		order by c.unit_job_sn desc
+	</select>	
+
+	<select id="dutyChargeCnt" resultType="int">
+		/* dutyChargeCnt */
+		SELECT COUNT (c.unit_job_sn)
+		FROM	duty_charge   c,
+				project_user  d,
+				member        e,
+				project q
+		WHERE	c.user_sn = d.user_sn
+		  AND	e.mber_sn = d.mber_sn
+		  AND	e.mber_sn = #{mber_sn}
+		  AND	d.user_sn IS NOT NULL
+		  and	d.prjct_sn = q.prjct_sn
+		  and	c.job_sttus_code = '1'
+		<include refid="search" />
+		ORDER by d.user_sn desc
+	</select>
+	
+	<select id="getDetailDutycharge" resultType="dutyCharge">
+		/* getDetailDutycharge */
+		SELECT	c.unit_job_sn, c.user_sn, c.unit_job_nm, c.unit_job_bgnde, c.unit_job_endde, c.unit_job_reqre_time, 
+				c.unit_job_cn, c.unit_job_pro, e.mber_ncnm,
+				(select a.prjct_sj
+				 from project a, project_user b
+				 where a.prjct_sn=b.prjct_sn
+				 and b.user_sn= c.user_sn) as prjct_sj,
+				 <![CDATA[
+				 (select	case	when f.unit_job_pro = 100 then '종료'
+									when f.unit_job_endde < sysdate then '지연'
+									when f.unit_job_bgnde < sysdate then '진행'
+									when f.unit_job_bgnde > sysdate then '시작전'
+									else '상태이상'
+									end as mystatus
+				  from duty_charge f
+				  where f.unit_job_sn=c.unit_job_sn) as myst
+				 ]]>	
+				from duty_charge c, project_user d, member e, project q
+				where c.user_sn = d.user_sn
+				and e.mber_sn = d.mber_sn
+				and d.prjct_sn = q.prjct_sn
+				and c.unit_job_sn = #{unit_job_sn}
+	</select>
+	<update id="updateDutycharge" parameterType="dutyCharge">
+		/* updateDutycharge */
+		DECLARE
+			BEGIN
+			UPDATE DUTY_CHARGE 
+			SET UNIT_JOB_PRO = #{unit_job_pro}, UNIT_JOB_CN = #{unit_job_cn} 
+			WHERE UNIT_JOB_SN = #{unit_job_sn};
+			
+			INSERT INTO DUTY_MODIFY(UNIT_JOB_UPDT_SN, UNIT_JOB_SN, UNIT_JOB_UPDDE,  UNIT_JOB_UPDT_CN)
+			VALUES(DUTYCHARGE_CHANGE_SEQ.NEXTVAL, #{unit_job_sn}, SYSDATE, #{unit_job_cn});
+		END;
+	</update>
+	<select id="getDutyChargeHistory" resultType="dutyCharge">
+		/* getDutyChargeHistory */
+		SELECT UNIT_JOB_UPDT_SN, UNIT_JOB_SN, UNIT_JOB_UPDDE, UNIT_JOB_UPDT_CN FROM DUTY_MODIFY WHERE UNIT_JOB_SN = #{unit_job_sn}
+		ORDER BY UNIT_JOB_UPDT_SN DESC
+	</select>
+	
+	
+</mapper>
